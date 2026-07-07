@@ -654,7 +654,6 @@
               <div><label class="tiny muted">Login Redirect URL</label><input id="sso_loginredir" placeholder="https://your-app/.auth/login/aad/callback" style="width:100%;box-sizing:border-box;margin-top:4px"></div>
               <div><label class="tiny muted">Logout Redirect URL</label><input id="sso_logoutredir" placeholder="https://your-app/" style="width:100%;box-sizing:border-box;margin-top:4px"></div>
               <div><label class="tiny muted">Role Claim</label><input id="sso_roleclaim" placeholder="roles" style="width:100%;box-sizing:border-box;margin-top:4px"></div>
-              <div><label class="tiny muted">Default Role</label><select id="sso_defaultrole" style="width:100%;margin-top:4px"><option>Analyst</option><option>Administrator</option></select></div>
               <div><label class="tiny muted">Scopes</label><input id="sso_scopes" placeholder="openid profile email" style="width:100%;box-sizing:border-box;margin-top:4px"></div>
               <div><label class="tiny muted">Authority URL (optional)</label><input id="sso_authority" placeholder="https://login.microsoftonline.com/{tenantId}" style="width:100%;box-sizing:border-box;margin-top:4px"></div>
             </div>
@@ -2222,7 +2221,7 @@ function handleSsoRedirect(){
 function readSsoForm(){
   authCfg.tenantId=v('sso_tenant').trim();authCfg.clientId=v('sso_client').trim();
   authCfg.loginRedirectUrl=v('sso_loginredir').trim();authCfg.logoutRedirectUrl=v('sso_logoutredir').trim();
-  authCfg.roleClaim=v('sso_roleclaim').trim()||'roles';authCfg.defaultRole=v('sso_defaultrole')||'Analyst';
+  authCfg.roleClaim=v('sso_roleclaim').trim()||'roles';authCfg.defaultRole='Analyst';
   authCfg.scopes=v('sso_scopes').trim()||'openid profile email';authCfg.authorityUrl=v('sso_authority').trim();
   /* client secret is intentionally NOT read from the UI — it is a backend application setting */
 }
@@ -2252,7 +2251,6 @@ function renderAccess(){
   if(tag)tag.textContent=fed?'managed in Entra ID':'local directory';
   const set=(id,val)=>{const e=$('#'+id);if(e&&document.activeElement!==e)e.value=val||'';};
   set('sso_tenant',authCfg.tenantId);set('sso_client',authCfg.clientId);set('sso_loginredir',authCfg.loginRedirectUrl);set('sso_logoutredir',authCfg.logoutRedirectUrl);set('sso_roleclaim',authCfg.roleClaim);set('sso_scopes',authCfg.scopes);set('sso_authority',authCfg.authorityUrl);
-  const dr=$('#sso_defaultrole');if(dr&&document.activeElement!==dr)dr.value=authCfg.defaultRole||'Analyst';
   renderUsers();renderIdentity();
 }
 function doLogin(){
