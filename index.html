@@ -2153,15 +2153,33 @@ function loadUsers(){USERS=LS.get('cafi_users');if(!USERS||!USERS.length)USERS=[
 function saveUsers(){LS.set('cafi_users',USERS);}
 function populateLoginUsers(){const sel=$('#loginUser');if(!sel)return;const fed=authCfg.accessMode==='federated';const list=fed?USERS.filter(u=>eqi(u.u,'admin')):USERS;sel.innerHTML=list.map(u=>`<option value="${esc(u.u)}">${esc(u.u)} — ${esc(u.role)}</option>`).join('');}
 function applyAccessMode(){const sso=$('#ssoBox');if(sso)sso.style.display='block';const orl=$('#loginOr');if(orl)orl.textContent=authCfg.accessMode==='federated'?'default local admin only':'or use a local account';populateLoginUsers();}
+function extractSwaRoles(entra){
+  /* Static Web Apps' /.auth/me only ever puts 'authenticated'/'anonymous' in userRoles for a
+     custom Azure AD provider — the real app role assignment (Administrator/Analyst) lives in the
+     claims array instead, under the standard WS role claim type (or whatever Role Claim the admin
+     configured under Access Management). Check claims first; fall back to userRoles for
+     forward-compat in case a future SWA version starts surfacing app roles there directly. */
+  const roleClaimTypes=['http://schemas.microsoft.com/ws/2008/06/identity/claims/role','roles','role'];
+  const configured=(authCfg.roleClaim||'').toLowerCase();
+  let roles=[];
+  if(Array.isArray(entra.claims)){
+    entra.claims.forEach(c=>{
+      const typ=String(c.typ||'').toLowerCase();
+      if(roleClaimTypes.includes(typ)||(configured&&typ===configured))roles.push(c.val);
+    });
+  }
+  if(!roles.length&&Array.isArray(entra.userRoles))roles=entra.userRoles.slice();
+  return roles.map(x=>String(x).toLowerCase());
+}
 async function authInit(){
   loadUsers();loadAdminCfg();loadAuthCfg();
   if(handleSsoRedirect())return;
   let entra=null;
   try{const r=await fetch('/.auth/me',{cache:'no-store'});if(r.ok){const j=await r.json();if(j&&j.clientPrincipal)entra=j.clientPrincipal;}}catch(e){}
   if(entra){
-    const roles=(entra.userRoles||[]).map(x=>String(x).toLowerCase());
-    const role=roles.includes('administrator')||roles.includes('cafi-soc-administrators')?'Administrator':(authCfg.defaultRole||'Analyst');
-    AUTH={mode:'sso',user:{u:entra.userDetails||'entra user',role,oid:entra.userId||'',groups:entra.userRoles||[]}};
+    const roles=extractSwaRoles(entra);
+    const role=roles.includes('administrator')||roles.includes('cafi-soc-administrators')?'Administrator':(roles.includes('analyst')||roles.includes('cafi-soc-analysts')?'Analyst':(authCfg.defaultRole||'Analyst'));
+    AUTH={mode:'sso',user:{u:entra.userDetails||'entra user',role,oid:entra.userId||'',groups:roles}};
     finishLogin();return;
   }
   AUTH={mode:authCfg.accessMode==='federated'?'sso':'local',user:null};
