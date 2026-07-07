@@ -12,8 +12,8 @@
   },
   "routes": [
     {
-      "route": "/.auth/login/aad",
-      "allowedRoles": ["anonymous"]
+      "route": "/.auth/*",
+      "allowedRoles": ["anonymous", "authenticated"]
     },
     {
       "route": "/*",
