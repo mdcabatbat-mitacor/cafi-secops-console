@@ -2188,10 +2188,16 @@ async function authInit(){
   updateModeLine();
 }
 function doMicrosoftLogin(){
-  /* Editable connection settings (tenant, client, redirects, claim, scopes) are configured under
-     Access Management. The client secret is a backend application setting, not used by this browser
-     redirect. If the connection is configured, start the Entra sign-in; otherwise point the admin
-     to Access Management. */
+  /* When hosted on Azure Static Web Apps, the platform's own /.auth/login/aad endpoint already
+     knows the tenant, client ID and secret (set server-side as app settings) — no browser-side
+     configuration is needed, and this is the real, working sign-in path for a deployed console.
+     The client-side implicit-grant flow below (using authCfg.tenantId/clientId from this
+     browser's local Access Management settings) is a fallback only for running the console from
+     a plain file:// or a host with no built-in auth proxy, where /.auth doesn't exist. */
+  if(location.protocol!=='file:'){
+    location.href='/.auth/login/aad?post_login_redirect_uri='+encodeURIComponent(location.pathname+location.search);
+    return;
+  }
   if(authCfg.clientId&&authCfg.tenantId){
     const redirect=authCfg.loginRedirectUrl||location.href.split('#')[0];
     const nonce=Math.random().toString(36).slice(2)+Date.now();try{sessionStorage.setItem('cafi_nonce',nonce);}catch(e){}
