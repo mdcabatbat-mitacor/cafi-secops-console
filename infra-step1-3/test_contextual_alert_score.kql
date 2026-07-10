@@ -1,0 +1,41 @@
+let lookback = 1h;
+let Events = datatable(TimeGenerated:datetime, DeviceRef:string, Severity:string)
+[
+    datetime(2026-07-07T10:00:00Z), "DEV-001", "Critical",
+    datetime(2026-07-07T10:05:00Z), "DEV-005", "High",
+    datetime(2026-07-05T12:00:00Z), "DEV-004", "Low",
+    datetime(2026-07-07T09:00:00Z), "GHOST-99", "Medium",
+    datetime(2026-07-10T02:30:00Z), "DEV-002", "Medium"
+];
+let Assets = Watchlist
+| where WatchlistAlias == "AssetInventory" and _DTItemType == "watchlist-item"
+| summarize arg_max(TimeGenerated, *) by tostring(WatchlistItem["DeviceId"])
+| extend DeviceId = tostring(WatchlistItem["DeviceId"]), Hostname = tostring(WatchlistItem["Hostname"]), CriticalityTier = tostring(WatchlistItem["CriticalityTier"]), SiteCode = tostring(WatchlistItem["SiteCode"]), OwningSector = tostring(WatchlistItem["OwningSector"])
+| extend MatchKey = pack_array(Hostname, DeviceId)
+| mv-expand MatchKey to typeof(string);
+let Maintenance = Watchlist
+| where WatchlistAlias == "MaintenanceWindows" and _DTItemType == "watchlist-item"
+| summarize arg_max(TimeGenerated, *) by tostring(WatchlistItem["WindowId"])
+| extend SiteCode = tostring(WatchlistItem["SiteCode"]), OwningSector = tostring(WatchlistItem["OwningSector"]), MaintStart = todatetime(WatchlistItem["StartTime"]), MaintEnd = todatetime(WatchlistItem["EndTime"]);
+let Changes = Watchlist
+| where WatchlistAlias == "ContextCatalogue" and _DTItemType == "watchlist-item"
+| summarize arg_max(TimeGenerated, *) by tostring(WatchlistItem["ContextId"])
+| extend DeviceId = tostring(WatchlistItem["DeviceId"]), ChangeTs = todatetime(WatchlistItem["ChangeTimestamp"]);
+Events
+| join kind=leftouter (Assets) on $left.DeviceRef == $right.MatchKey
+| summarize arg_max(1, *) by TimeGenerated, DeviceRef
+| extend IsKnownAsset = isnotempty(DeviceId)
+| extend CriticalityTier = iif(IsKnownAsset, toint(CriticalityTier), -1)
+| join kind=leftouter (Maintenance) on SiteCode, OwningSector
+| extend InMaintenance = IsKnownAsset and isnotempty(MaintStart) and TimeGenerated between (MaintStart .. MaintEnd)
+| join kind=leftouter (Changes) on DeviceId
+| extend RecentChange = IsKnownAsset and isnotempty(ChangeTs) and ChangeTs between (TimeGenerated - 48h .. TimeGenerated)
+| extend ContextStatus = case(not(IsKnownAsset), "UnknownAsset", InMaintenance, "InMaintenance", RecentChange, "RecentlyChanged", "NormalOps")
+| extend ScoreCriticality = case(not(IsKnownAsset), 0, CriticalityTier == 0, 40, CriticalityTier == 1, 20, 5)
+| extend ScoreMaintenance = iif(InMaintenance, -25, 0)
+| extend ScoreChange = case(RecentChange, -10, IsKnownAsset, 5, 0)
+| extend ScoreUnknown = iif(not(IsKnownAsset), 30, 0)
+| extend ScoreSeverity = case(Severity == "Critical", 50, Severity == "High", 30, Severity == "Medium", 15, 0)
+| extend ContextualAlertScore = ScoreCriticality + ScoreMaintenance + ScoreChange + ScoreUnknown + ScoreSeverity
+| extend Disposition = case(ContextualAlertScore >= 70, "Escalate", ContextualAlertScore >= 40, "Investigate", ContextualAlertScore >= 15, "Monitor", "Suppress")
+| project TimeGenerated, DeviceRef, DeviceId, Severity, ContextStatus, ContextualAlertScore, Disposition

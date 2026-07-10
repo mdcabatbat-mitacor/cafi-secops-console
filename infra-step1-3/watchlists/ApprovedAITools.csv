@@ -1,0 +1,5 @@
+AITool,Vendor,Status,Endpoint,Notes
+Claude,Anthropic,Sanctioned,https://api.anthropic.com,Approved for SOC analyst assistance
+Copilot,Microsoft,Sanctioned,https://api.githubcopilot.com,Approved for engineering workstation use
+Azure OpenAI,Microsoft,Sanctioned,https://cafi-openai.openai.azure.com,Fronted by API Management gateway
+ChatGPT,OpenAI,Unsanctioned,https://chat.openai.com,Flagged shadow AI - not approved for sensitive data

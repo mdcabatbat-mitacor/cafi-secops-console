@@ -1,0 +1,5 @@
+ContextId,DeviceId,ChangeType,ChangeTimestamp,ChangedBy,ChangeDetail
+CTX-001,DEV-002,ConfigChange,2026-07-05T14:22:00Z,eng.team,Updated PLC ladder logic v3.2
+CTX-002,DEV-004,PatchApplied,2026-07-04T09:10:00Z,soc.admin,Applied security rollup KB5041
+CTX-003,DEV-006,AccessGranted,2026-07-06T11:45:00Z,vendor.support,Temporary remote access for diagnostics
+CTX-004,DEV-009,FirmwareUpdate,2026-07-03T18:00:00Z,net.ops,Switch firmware bump to 15.2

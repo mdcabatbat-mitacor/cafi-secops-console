@@ -1,0 +1,5 @@
+Endpoint,Type,Controlled,Gateway
+https://cafi-openai.openai.azure.com,AzureOpenAI,Yes,APIM-cafi-gw-01
+https://api.anthropic.com,ThirdPartyAPI,Yes,APIM-cafi-gw-01
+https://api.githubcopilot.com,ThirdPartyAPI,No,None
+https://chat.openai.com,ThirdPartyWeb,No,None

@@ -1,0 +1,11 @@
+DeviceId,Hostname,AssetRole,CriticalityTier,OwningSector,SiteCode,Vendor,Protocol
+DEV-001,RTU-GRID-01,RemoteTerminalUnit,0,grid-rtu,SITE-A,Siemens,DNP3
+DEV-002,PLC-EDGE-04,ProgrammableLogicController,0,plant-edge,SITE-B,Rockwell,Modbus
+DEV-003,HMI-CTRL-02,HumanMachineInterface,1,plant-edge,SITE-B,Honeywell,OPC-UA
+DEV-004,SRV-SOC-01,SecurityServer,1,it-soc,SITE-C,Dell,HTTPS
+DEV-005,WKS-ENG-07,EngineeringWorkstation,2,it-soc,SITE-C,HP,SMB
+DEV-006,GATEWAY-VEND-03,VendorGateway,2,vendor-ext,SITE-D,Cisco,HTTPS
+DEV-007,SENSOR-IOT-11,IoTSensor,3,plant-edge,SITE-B,Siemens,MQTT
+DEV-008,SRV-DB-02,DatabaseServer,1,it-soc,SITE-C,Microsoft,TDS
+DEV-009,SWITCH-CORE-01,NetworkSwitch,2,grid-rtu,SITE-A,Cisco,SNMP
+DEV-010,LAPTOP-VEND-05,VendorLaptop,4,vendor-ext,SITE-D,Lenovo,RDP

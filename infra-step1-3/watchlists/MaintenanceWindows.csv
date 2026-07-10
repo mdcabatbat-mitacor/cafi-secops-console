@@ -1,0 +1,5 @@
+WindowId,SiteCode,OwningSector,StartTime,EndTime,WindowType,Description,ApprovedBy
+WIN-001,SITE-A,grid-rtu,2026-07-08T02:00:00Z,2026-07-08T06:00:00Z,Scheduled,Firmware update on RTU fleet,m.cabatbat@mitacor.net
+WIN-002,SITE-B,plant-edge,2026-07-10T01:00:00Z,2026-07-10T04:00:00Z,Scheduled,PLC patch cycle,m.cabatbat@mitacor.net
+WIN-003,SITE-C,it-soc,2026-07-12T22:00:00Z,2026-07-13T02:00:00Z,Emergency,DB failover test,m.cabatbat@mitacor.net
+WIN-004,SITE-D,vendor-ext,2026-07-15T03:00:00Z,2026-07-15T05:00:00Z,Scheduled,Vendor gateway cert renewal,m.cabatbat@mitacor.net
