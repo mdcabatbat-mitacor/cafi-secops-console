@@ -2270,6 +2270,16 @@ function finishLogin(){
 }
 function doLogout(ev){
   if(ev)ev.stopPropagation();
+  /* When hosted on Azure Static Web Apps, the real sign-in path (doMicrosoftLogin) goes through
+     the platform's own /.auth/login/aad endpoint, which sets a platform-level session cookie that
+     Entra's own logout endpoint alone does not clear. Calling only /oauth2/v2.0/logout ends the
+     Entra session but leaves that cookie valid, so authInit()'s /.auth/me check silently signs the
+     user back in on next load. The platform's own /.auth/logout must be used for a real, complete
+     sign-out when hosted (mirrors the same protocol!=='file:' branch used in doMicrosoftLogin). */
+  if(location.protocol!=='file:'){
+    location.href='/.auth/logout?post_logout_redirect_uri='+encodeURIComponent(authCfg.logoutRedirectUrl||(location.origin+'/'));
+    return;
+  }
   if(AUTH.mode==='sso'&&authCfg.logoutRedirectUrl){try{location.href=ssoAuthority()+'/oauth2/v2.0/logout?post_logout_redirect_uri='+encodeURIComponent(authCfg.logoutRedirectUrl);return;}catch(e){}}
   AUTH.user=null;$('#uMenu').classList.remove('on');$('#userChip').style.display='none';
   $('#loginPass').value='';populateLoginUsers();applyAccessMode();$('#loginWrap').classList.remove('hidden');
