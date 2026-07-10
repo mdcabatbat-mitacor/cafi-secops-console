@@ -2132,7 +2132,7 @@ const LS={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return
 const obf=s=>{try{return btoa(unescape(encodeURIComponent('cafi::'+s)));}catch(e){return 'cafi::'+s;}};
 let AUTH={mode:'local',user:null};
 let USERS=[];
-let authCfg={enableMicrosoftSSO:true,accessMode:'federated',tenantId:'6361ff58-88a7-404a-bf78-1767d3a843f1',clientId:'7757db64-41d0-4b4e-b6db-a672a0e9dc15',clientSecret:'',loginRedirectUrl:'https://white-bush-0d8fb7b0f.7.azurestaticapps.net/.auth/login/aad/callback',logoutRedirectUrl:'https://white-bush-0d8fb7b0f.7.azurestaticapps.net/',roleClaim:'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',defaultRole:'Analyst',authorityUrl:'https://login.microsoftonline.com/6361ff58-88a7-404a-bf78-1767d3a843f1',scopes:'openid profile email'};
+let authCfg={enableMicrosoftSSO:true,accessMode:'federated',tenantId:'6361ff58-88a7-404a-bf78-1767d3a843f1',clientId:'7757db64-41d0-4b4e-b6db-a672a0e9dc15',clientSecret:'',loginRedirectUrl:'https://cafisecops.com/.auth/login/aad/callback',logoutRedirectUrl:'https://cafisecops.com/',roleClaim:'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',defaultRole:'Analyst',authorityUrl:'https://login.microsoftonline.com/6361ff58-88a7-404a-bf78-1767d3a843f1',scopes:'openid profile email'};
 function loadAuthCfg(){const c=LS.get('cafi_authcfg');if(c)authCfg=Object.assign(authCfg,c);}
 function saveAuthCfg(){LS.set('cafi_authcfg',authCfg);}
 function ssoAuthority(){return (authCfg.authorityUrl||('https://login.microsoftonline.com/'+(authCfg.tenantId||'common'))).replace(/\/$/,'');}
