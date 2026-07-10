@@ -1,0 +1,11 @@
+[
+  {
+    "TimeGenerated": "2026-07-10T00:00:00Z",
+    "Round": 5,
+    "GlobalOffset": 0.3678,
+    "AcceptedNodes": "plant-edge,grid-rtu,it-soc",
+    "RejectedNodes": "vendor-ext-04",
+    "RejectionDetail": "{\"plant-edge\": {\"norm_ratio\": 0.764, \"cosine_similarity\": -0.011, \"rejected\": false}, \"grid-rtu\": {\"norm_ratio\": 1.308, \"cosine_similarity\": -0.961, \"rejected\": false}, \"it-soc\": {\"norm_ratio\": 0.261, \"cosine_similarity\": -0.932, \"rejected\": false}, \"vendor-ext-04\": {\"norm_ratio\": 2.33, \"cosine_similarity\": -0.963, \"rejected\": true}}",
+    "DataSource": "Simulated-Seed"
+  }
+]
