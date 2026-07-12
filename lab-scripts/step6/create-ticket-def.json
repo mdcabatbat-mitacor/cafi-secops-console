@@ -1,0 +1,187 @@
+The command requires the extension logic. Do you want to install it now? The command will continue to run after the extension is installed. (Y/n): {
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "Condition_-_Ticketing_Mode": {
+        "actions": {
+          "Create_Jira_Issue": {
+            "inputs": {
+              "body": {
+                "fields": {
+                  "description": "@{concat('Sentinel Incident #', string(triggerBody()?['object']?['properties']?['incidentNumber']), ' — severity: ', triggerBody()?['object']?['properties']?['severity'])}",
+                  "issuetype": {
+                    "name": "Task"
+                  },
+                  "project": {
+                    "key": "CAFI"
+                  },
+                  "summary": "@{coalesce(triggerBody()?['object']?['properties']?['title'], 'CAFI SecOps Incident')}"
+                }
+              },
+              "headers": {
+                "Authorization": "Basic @{base64(concat(body('Get_Jira_email_secret')?['value'], ':', body('Get_Jira_API_token_secret')?['value']))}",
+                "Content-Type": "application/json"
+              },
+              "method": "POST",
+              "uri": "@{body('Get_Jira_site_secret')?['value']}/rest/api/3/issue"
+            },
+            "runAfter": {
+              "Get_Jira_API_token_secret": [
+                "Succeeded"
+              ]
+            },
+            "type": "Http"
+          },
+          "Get_Jira_API_token_secret": {
+            "inputs": {
+              "authentication": {
+                "audience": "https://vault.azure.net",
+                "type": "ManagedServiceIdentity"
+              },
+              "method": "GET",
+              "uri": "https://cafi-keyvault.vault.azure.net/secrets/cafi-jira-api-token?api-version=7.4"
+            },
+            "runAfter": {
+              "Get_Jira_email_secret": [
+                "Succeeded"
+              ]
+            },
+            "type": "Http"
+          },
+          "Get_Jira_email_secret": {
+            "inputs": {
+              "authentication": {
+                "audience": "https://vault.azure.net",
+                "type": "ManagedServiceIdentity"
+              },
+              "method": "GET",
+              "uri": "https://cafi-keyvault.vault.azure.net/secrets/cafi-jira-email?api-version=7.4"
+            },
+            "runAfter": {
+              "Get_Jira_site_secret": [
+                "Succeeded"
+              ]
+            },
+            "type": "Http"
+          },
+          "Get_Jira_site_secret": {
+            "inputs": {
+              "authentication": {
+                "audience": "https://vault.azure.net",
+                "type": "ManagedServiceIdentity"
+              },
+              "method": "GET",
+              "uri": "https://cafi-keyvault.vault.azure.net/secrets/cafi-jira-site?api-version=7.4"
+            },
+            "type": "Http"
+          },
+          "Update_Incident_with_Jira_Key": {
+            "inputs": {
+              "body": {
+                "incidentArmId": "@{triggerBody()?['object']?['id']}",
+                "tagsToAdd": {
+                  "TagsToAdd": [
+                    {
+                      "Tag": "@body('Create_Jira_Issue')?['key']"
+                    }
+                  ]
+                }
+              },
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                }
+              },
+              "method": "put",
+              "path": "/Incidents"
+            },
+            "runAfter": {
+              "Create_Jira_Issue": [
+                "Succeeded"
+              ]
+            },
+            "type": "ApiConnection"
+          }
+        },
+        "else": {
+          "actions": {
+            "Compose_CAFI_Case_Reference": {
+              "inputs": "@concat('CAFI-', string(triggerBody()?['object']?['properties']?['incidentNumber']))",
+              "type": "Compose"
+            },
+            "Update_Incident_with_Case_Reference": {
+              "inputs": {
+                "body": {
+                  "incidentArmId": "@{triggerBody()?['object']?['id']}",
+                  "tagsToAdd": {
+                    "TagsToAdd": [
+                      {
+                        "Tag": "@concat('CAFI-', string(triggerBody()?['object']?['properties']?['incidentNumber']))"
+                      }
+                    ]
+                  }
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "method": "put",
+                "path": "/Incidents"
+              },
+              "runAfter": {
+                "Compose_CAFI_Case_Reference": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection"
+            }
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@parameters('useJiraMode')",
+                true
+              ]
+            }
+          ]
+        },
+        "runAfter": {},
+        "type": "If"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+      "notes": {}
+    },
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "defaultValue": {},
+        "type": "Object"
+      },
+      "useJiraMode": {
+        "defaultValue": false,
+        "type": "Bool"
+      }
+    },
+    "triggers": {
+      "Microsoft_Sentinel_incident": {
+        "inputs": {
+          "body": {
+            "callback_url": "@listCallbackUrl()"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+            }
+          },
+          "path": "/incident-creation"
+        },
+        "type": "ApiConnectionWebhook"
+      }
+    }
+  }
+}
