@@ -1,0 +1,85 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "$connections": {
+        "defaultValue": {},
+        "type": "Object"
+      }
+    },
+    "triggers": {
+      "Microsoft_Sentinel_incident": {
+        "inputs": {
+          "body": {
+            "callback_url": "@listCallbackUrl()"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+            }
+          },
+          "path": "/incident-creation"
+        },
+        "type": "ApiConnectionWebhook"
+      }
+    },
+    "actions": {
+      "Compose_evidence_bundle": {
+        "runAfter": {},
+        "type": "Compose",
+        "inputs": {
+          "incidentNumber": "@triggerBody()?['object']?['properties']?['incidentNumber']",
+          "title": "@triggerBody()?['object']?['properties']?['title']",
+          "severity": "@triggerBody()?['object']?['properties']?['severity']",
+          "createdTimeUtc": "@triggerBody()?['object']?['properties']?['createdTimeUtc']",
+          "status": "@triggerBody()?['object']?['properties']?['status']",
+          "relatedAnalyticRuleIds": "@triggerBody()?['object']?['properties']?['relatedAnalyticRuleIds']",
+          "labels": "@triggerBody()?['object']?['properties']?['labels']",
+          "incidentUrl": "@triggerBody()?['object']?['properties']?['incidentUrl']",
+          "capturedBy": "cafi-evidence-packager",
+          "capturedAtUtc": "@utcNow()"
+        }
+      },
+      "Write_evidence_to_blob": {
+        "runAfter": {
+          "Compose_evidence_bundle": [
+            "Succeeded"
+          ]
+        },
+        "type": "Http",
+        "inputs": {
+          "method": "PUT",
+          "uri": "https://cafistoragemichae.blob.core.windows.net/case-evidence/@{triggerBody()?['object']?['properties']?['incidentNumber']}-@{formatDateTime(utcNow(),'yyyyMMddHHmmss')}.json",
+          "headers": {
+            "x-ms-blob-type": "BlockBlob",
+            "Content-Type": "application/json",
+            "x-ms-version": "2021-08-06"
+          },
+          "body": "@outputs('Compose_evidence_bundle')",
+          "authentication": {
+            "type": "ManagedServiceIdentity",
+            "audience": "https://storage.azure.com/"
+          }
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "parameters": {
+    "$connections": {
+      "value": {
+        "azuresentinel": {
+          "connectionId": "/subscriptions/e611ddeb-8426-40fd-9488-2da64c5d95b5/resourceGroups/rg-cafi-lab/providers/Microsoft.Web/connections/azuresentinel",
+          "connectionName": "azuresentinel",
+          "id": "/subscriptions/e611ddeb-8426-40fd-9488-2da64c5d95b5/providers/Microsoft.Web/locations/australiaeast/managedApis/azuresentinel",
+          "connectionProperties": {
+            "authentication": {
+              "type": "ManagedServiceIdentity"
+            }
+          }
+        }
+      }
+    }
+  }
+}
