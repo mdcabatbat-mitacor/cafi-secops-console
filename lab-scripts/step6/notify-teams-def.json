@@ -1,0 +1,68 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": { "$connections": { "defaultValue": {}, "type": "Object" } },
+    "triggers": {
+      "Microsoft_Sentinel_incident": {
+        "inputs": {
+          "body": { "callback_url": "@listCallbackUrl()" },
+          "host": { "connection": { "name": "@parameters('$connections')['azuresentinel']['connectionId']" } },
+          "path": "/incident-creation"
+        },
+        "type": "ApiConnectionWebhook"
+      }
+    },
+    "actions": {
+      "Get_teams_webhook_url": {
+        "runAfter": {},
+        "type": "Http",
+        "inputs": {
+          "method": "GET",
+          "uri": "https://cafi-keyvault.vault.azure.net/secrets/cafi-teams-webhook-url?api-version=7.4",
+          "authentication": { "type": "ManagedServiceIdentity", "audience": "https://vault.azure.net" }
+        }
+      },
+      "Post_to_teams": {
+        "runAfter": { "Get_teams_webhook_url": ["Succeeded"] },
+        "type": "Http",
+        "inputs": {
+          "method": "POST",
+          "uri": "@body('Get_teams_webhook_url')?['value']",
+          "headers": { "Content-Type": "application/json" },
+          "body": {
+            "@@type": "MessageCard",
+            "@@context": "http://schema.org/extensions",
+            "themeColor": "D93F3F",
+            "summary": "CAFI SecOps Incident Alert",
+            "title": "@{triggerBody()?['object']?['properties']?['title']}",
+            "sections": [
+              { "facts": [
+                  { "name": "Incident #", "value": "@{string(triggerBody()?['object']?['properties']?['incidentNumber'])}" },
+                  { "name": "Severity", "value": "@{triggerBody()?['object']?['properties']?['severity']}" },
+                  { "name": "Status", "value": "@{triggerBody()?['object']?['properties']?['status']}" }
+              ] }
+            ],
+            "potentialAction": [
+              { "@@type": "OpenUri", "name": "View Incident",
+                "targets": [ { "os": "default", "uri": "@{triggerBody()?['object']?['properties']?['incidentUrl']}" } ] }
+            ]
+          }
+        }
+      }
+    },
+    "outputs": {}
+  },
+  "parameters": {
+    "$connections": {
+      "value": {
+        "azuresentinel": {
+          "connectionId": "/subscriptions/e611ddeb-8426-40fd-9488-2da64c5d95b5/resourceGroups/rg-cafi-lab/providers/Microsoft.Web/connections/azuresentinel",
+          "connectionName": "azuresentinel",
+          "id": "/subscriptions/e611ddeb-8426-40fd-9488-2da64c5d95b5/providers/Microsoft.Web/locations/australiaeast/managedApis/azuresentinel",
+          "connectionProperties": { "authentication": { "type": "ManagedServiceIdentity" } }
+        }
+      }
+    }
+  }
+}
