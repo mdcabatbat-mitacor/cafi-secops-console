@@ -1,4 +1,4 @@
-The command requires the extension logic. Do you want to install it now? The command will continue to run after the extension is installed. (Y/n): {
+{
   "definition": {
     "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
     "actions": {
@@ -8,7 +8,21 @@ The command requires the extension logic. Do you want to install it now? The com
             "inputs": {
               "body": {
                 "fields": {
-                  "description": "@{concat('Sentinel Incident #', string(triggerBody()?['object']?['properties']?['incidentNumber']), ' — severity: ', triggerBody()?['object']?['properties']?['severity'])}",
+                  "description": {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "@{concat('Sentinel Incident #', string(triggerBody()?['object']?['properties']?['incidentNumber']), ' — severity: ', triggerBody()?['object']?['properties']?['severity'])}",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "doc",
+                    "version": 1
+                  },
                   "issuetype": {
                     "name": "Task"
                   },
@@ -19,18 +33,27 @@ The command requires the extension logic. Do you want to install it now? The com
                 }
               },
               "headers": {
-                "Authorization": "Basic @{base64(concat(body('Get_Jira_email_secret')?['value'], ':', body('Get_Jira_API_token_secret')?['value']))}",
+                "Authorization": "@{outputs('Debug_Auth_Header')}",
                 "Content-Type": "application/json"
               },
               "method": "POST",
               "uri": "@{body('Get_Jira_site_secret')?['value']}/rest/api/3/issue"
             },
             "runAfter": {
-              "Get_Jira_API_token_secret": [
+              "Debug_Auth_Header": [
                 "Succeeded"
               ]
             },
             "type": "Http"
+          },
+          "Debug_Auth_Header": {
+            "inputs": "@concat('Basic ', base64(concat(body('Get_Jira_email_secret')?['value'], ':', body('Get_Jira_API_token_secret')?['value'])))",
+            "runAfter": {
+              "Get_Jira_API_token_secret": [
+                "Succeeded"
+              ]
+            },
+            "type": "Compose"
           },
           "Get_Jira_API_token_secret": {
             "inputs": {
@@ -163,7 +186,7 @@ The command requires the extension logic. Do you want to install it now? The com
         "type": "Object"
       },
       "useJiraMode": {
-        "defaultValue": false,
+        "defaultValue": true,
         "type": "Bool"
       }
     },
