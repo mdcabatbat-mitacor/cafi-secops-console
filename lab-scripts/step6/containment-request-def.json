@@ -1,0 +1,134 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "Condition": {
+        "actions": {
+          "Compose": {
+            "inputs": "SIMULATED: IsolateEndpoint executed on target device (Class B containment approved)",
+            "type": "Compose"
+          },
+          "Update_incident": {
+            "inputs": {
+              "body": {
+                "incidentArmId": "@triggerBody()?['object']?['id']",
+                "tagsToAdd": {
+                  "TagsToAdd": [
+                    {
+                      "Tag": "Contained-Simulated"
+                    }
+                  ]
+                }
+              },
+              "host": {
+                "connection": {
+                  "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                }
+              },
+              "method": "put",
+              "path": "/Incidents"
+            },
+            "runAfter": {
+              "Compose": [
+                "Succeeded"
+              ]
+            },
+            "type": "ApiConnection"
+          }
+        },
+        "else": {
+          "actions": {
+            "Update_incident_1": {
+              "inputs": {
+                "body": {
+                  "incidentArmId": "@triggerBody()?['object']?['id']",
+                  "tagsToAdd": {
+                    "TagsToAdd": [
+                      {
+                        "Tag": "Containment-Rejected"
+                      }
+                    ]
+                  }
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "method": "put",
+                "path": "/Incidents"
+              },
+              "type": "ApiConnection"
+            }
+          }
+        },
+        "expression": {
+          "and": [
+            {
+              "equals": [
+                "@body('Post_adaptive_card_and_wait_for_a_response')?['data']?['response']",
+                "Approve"
+              ]
+            }
+          ]
+        },
+        "runAfter": {
+          "Post_adaptive_card_and_wait_for_a_response": [
+            "Succeeded"
+          ]
+        },
+        "type": "If"
+      },
+      "Post_adaptive_card_and_wait_for_a_response": {
+        "inputs": {
+          "body": {
+            "body": {
+              "messageBody": "{\n  \"type\": \"AdaptiveCard\",\n  \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",\n  \"version\": \"1.4\",\n  \"body\": [\n    { \"type\": \"TextBlock\", \"text\": \"CAFI SecOps — Containment Approval Request\", \"weight\": \"Bolder\", \"size\": \"Medium\" },\n    { \"type\": \"TextBlock\", \"text\": \"A Class B containment action is pending approval. Review the incident details in Sentinel before responding.\", \"wrap\": true }\n  ],\n  \"actions\": [\n    { \"type\": \"Action.Submit\", \"title\": \"Approve\", \"data\": { \"response\": \"Approve\" } },\n    { \"type\": \"Action.Submit\", \"title\": \"Reject\", \"data\": { \"response\": \"Reject\" } }\n  ]\n}",
+              "recipient": {
+                "channelId": "19:64bbbb9c77b04ba79607c8a4daf4929c@thread.tacv2",
+                "groupId": "ffa26f5f-e7d1-4204-8b08-30133a9eb0e4"
+              },
+              "updateMessage": "Thanks for your response!"
+            },
+            "notificationUrl": "@listCallbackUrl()"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['teams']['connectionId']"
+            }
+          },
+          "path": "/v1.0/teams/conversation/gatherinput/poster/Flow bot/location/@{encodeURIComponent('Channel')}/$subscriptions"
+        },
+        "runAfter": {},
+        "type": "ApiConnectionWebhook"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+      "notes": {}
+    },
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "defaultValue": {},
+        "type": "Object"
+      }
+    },
+    "triggers": {
+      "Microsoft_Sentinel_incident": {
+        "inputs": {
+          "body": {
+            "callback_url": "@listCallbackUrl()"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+            }
+          },
+          "path": "/incident-creation"
+        },
+        "type": "ApiConnectionWebhook"
+      }
+    }
+  }
+}
