@@ -1,0 +1,13 @@
+[
+  {
+    "TimeGenerated": "2026-07-16T00:00:00Z",
+    "PlaybookName": "cafi-notify-oncall",
+    "IncidentNumber": "1",
+    "TicketReference": "CAFI-1",
+    "Classification": "Class A",
+    "ActionTaken": "OnCall-Notified",
+    "ApprovalStatus": "N/A",
+    "Outcome": "Success",
+    "RunDurationSeconds": 7.47
+  }
+]

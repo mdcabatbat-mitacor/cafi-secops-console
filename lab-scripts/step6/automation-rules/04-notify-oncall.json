@@ -1,0 +1,51 @@
+{
+  "etag": "\"2a0061e8-0000-1a00-0000-6a58e7990000\"",
+  "id": "/subscriptions/e611ddeb-8426-40fd-9488-2da64c5d95b5/resourceGroups/rg-cafi-lab/providers/Microsoft.OperationalInsights/workspaces/cafi-law/providers/Microsoft.SecurityInsights/AutomationRules/cad6a3f1-ea22-46e9-bc27-3daa0fd19597",
+  "name": "cad6a3f1-ea22-46e9-bc27-3daa0fd19597",
+  "properties": {
+    "actions": [
+      {
+        "actionConfiguration": {
+          "logicAppResourceId": "/subscriptions/e611ddeb-8426-40fd-9488-2da64c5d95b5/resourceGroups/rg-cafi-lab/providers/Microsoft.Logic/workflows/cafi-notify-oncall",
+          "tenantId": "6361ff58-88a7-404a-bf78-1767d3a843f1"
+        },
+        "actionType": "RunPlaybook",
+        "order": 1
+      }
+    ],
+    "createdBy": {
+      "email": "m.cabatbat@mitacor.net",
+      "name": "Michael Cabatbat",
+      "objectId": "b955576c-ef32-4774-a58e-4e8cb32e275d",
+      "userPrincipalName": "m.cabatbat@mitacor.net"
+    },
+    "createdTimeUtc": "2026-07-16T13:16:02Z",
+    "displayName": "CAFI - Notify On-Call (High Severity)",
+    "lastModifiedBy": {
+      "email": "m.cabatbat@mitacor.net",
+      "name": "Michael Cabatbat",
+      "objectId": "b955576c-ef32-4774-a58e-4e8cb32e275d",
+      "userPrincipalName": "m.cabatbat@mitacor.net"
+    },
+    "lastModifiedTimeUtc": "2026-07-16T14:15:53Z",
+    "order": 4,
+    "triggeringLogic": {
+      "conditions": [
+        {
+          "conditionProperties": {
+            "operator": "Equals",
+            "propertyName": "IncidentSeverity",
+            "propertyValues": [
+              "High"
+            ]
+          },
+          "conditionType": "Property"
+        }
+      ],
+      "isEnabled": true,
+      "triggersOn": "Incidents",
+      "triggersWhen": "Created"
+    }
+  },
+  "type": "Microsoft.SecurityInsights/AutomationRules"
+}
