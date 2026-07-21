@@ -1,3 +1,19 @@
+const { DefaultAzureCredential } = require("@azure/identity");
+const { SecretClient } = require("@azure/keyvault-secrets");
+
+let cachedToken = null;
+let cachedAt = 0;
+
+async function getJiraToken() {
+  if (cachedToken && (Date.now() - cachedAt) < 5 * 60 * 1000) return cachedToken;
+  const credential = new DefaultAzureCredential();
+  const client = new SecretClient(process.env.KEY_VAULT_URI, credential);
+  const secret = await client.getSecret("jira-api-token");
+  cachedToken = secret.value;
+  cachedAt = Date.now();
+  return cachedToken;
+}
+
 module.exports = async function (context, req) {
   const { summary, description } = req.body || {};
 
@@ -8,7 +24,7 @@ module.exports = async function (context, req) {
 
   const site = process.env.JIRA_SITE;
   const email = process.env.JIRA_EMAIL;
-  const token = process.env.JIRA_API_TOKEN;
+  const token = await getJiraToken();
 
   const auth = Buffer.from(`${email}:${token}`).toString("base64");
 
