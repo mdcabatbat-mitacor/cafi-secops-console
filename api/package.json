@@ -1,9 +1,5 @@
 {
   "name": "cafi-secops-api",
   "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@azure/identity": "^4.4.1",
-    "@azure/keyvault-secrets": "^4.8.0"
-  }
+  "private": true
 }
