@@ -2007,15 +2007,16 @@ function renderCaseDetail(){
   if(!c){el.innerHTML=emptyBox('🗀','Select a case to see its unified evidence timeline — every alert, enrichment step, explanation and response action linked with timestamps.');return;}
   const tl=caseTimeline(c);
   const tk=c.st.ticket;
-  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> <span class="chip ${c.st.status==='Open'?'c-inv':'c-sup'}">${c.st.status}</span>${tk?` <span class="chip c-mon" title="${esc(tk.system)}">${esc(tk.ref)}</span>`:''}</div></div>
+  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> <span class="chip ${c.st.status==='Open'?'c-inv':'c-sup'}">${c.st.status}</span>${tk?(tk.url?` <a class="chip c-mon" href="${tk.url}" target="_blank" rel="noopener" title="${esc(tk.system)} — open in Jira">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</a>`:` <span class="chip c-mon" title="${esc(tk.system)}">${esc(tk.ref)}</span>`):''}</div></div>
   <div class="feed" style="max-height:280px;overflow:auto">${tl.map(x=>`<div class="row" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:flex-start"><span class="lchip ${/^L\d/.test(x.tag)?x.tag:'L5'}" style="flex:none">${x.tag}</span><div><div class="tiny">${x.txt}</div><div class="tiny muted mono">${fmtT(x.t)}</div></div></div>`).join('')}</div>
   <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
     <button class="btn sm" onclick="overrideCase('${c.id}')">✎ Override disposition</button>
     <button class="btn sm" onclick="markFP('${c.id}')">⚑ Mark false positive</button>
     <button class="btn sm" onclick="closeCase('${c.id}')">${c.st.status==='Open'?'✔ Close case':'↺ Reopen'}</button>
-    <button class="btn sm" onclick="raiseTicket('${c.id}')">${c.st.ticket?'↻ Update ticket':'🎫 Create ticket'}</button>
+    ${ticketMode==='jira'?(c.st.ticket&&c.st.ticket.url?`<button class="btn sm" onclick="lookupJiraTicket('${c.id}',false)">↻ Refresh Jira status</button>`:`<button class="btn sm" onclick="lookupJiraTicket('${c.id}',false)">🔎 Check Jira</button> <button class="btn sm" onclick="raiseTicket('${c.id}')">🎫 Create ticket</button>`):`<button class="btn sm" onclick="raiseTicket('${c.id}')">${c.st.ticket?'↻ Update ticket':'🎫 Create ticket'}</button>`}
     <button class="btn sm" onclick="exportCaseJson('${c.id}')">⤓ Evidence package (JSON)</button>
   </div>`;
+  if(ticketMode==='jira'&&!c.st._jiraChecked&&!(c.st.ticket&&c.st.ticket.url)){c.st._jiraChecked=true;lookupJiraTicket(c.id,true);}
 }
 function overrideCase(id){const c=buildCases().find(x=>x.id===id);if(!c)return;
   const nd=prompt('New disposition (Escalate / Investigate / Monitor / Suppress):',c.e.Disposition);
@@ -2038,10 +2039,25 @@ function markFP(id){const c=buildCases().find(x=>x.id===id)||{e:EVENTS.find(e=>'
 function closeCase(id){if(!caseState[id])return;const open=caseState[id].status==='Open';caseState[id].status=open?'Closed':'Open';caseState[id].log.push({t:now(),tag:'Analyst',txt:open?'Case closed':'Case reopened'});renderCases();}
 function exportCaseJson(id){const c=buildCases().find(x=>x.id===id);if(!c)return;
   downloadBlob(id+'_'+stamp()+'.json',JSON.stringify({case:c.id,status:c.st.status,event:c.e,timeline:caseTimeline(c).map(x=>({time:x.t,source:x.tag,entry:x.txt}))},null,2),'application/json');toast('Evidence package exported');}
+function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
+  fetch('/api/jira-lookup-issue?caseId='+encodeURIComponent(id))
+    .then(r=>r.json())
+    .then(data=>{
+      if(data&&data.found){
+        const prev=st.ticket&&st.ticket.status;
+        st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',url:data.url,status:data.status,t:now()};
+        if(!prev)st.log.push({t:now(),tag:'L5',txt:'Linked existing Jira issue '+data.key+' · status '+data.status});
+        else if(prev!==data.status)st.log.push({t:now(),tag:'L5',txt:'Jira status updated: '+prev+' → '+data.status});
+        renderCases();if(!silent)toast(data.key+' · '+data.status);
+      }else{
+        if(!silent)toast('No Jira issue found for '+id,true);
+      }
+    })
+    .catch(()=>{if(!silent)toast('Jira lookup unreachable',true);});}
 function setTicketMode(m){ticketMode=m;LS&&LS.set&&LS.set('cafi_ticketmode',m);renderTicketHint();toast(m==='jira'?'Ticketing set to Jira integration':'Ticketing set to built-in case reference');}
 function jiraConn(){return connMeta.find(c=>c.key==='itsm');}
 function renderTicketHint(){const el=$('#ticketModeHint');if(!el)return;const sel=$('#ticketMode');if(sel)sel.value=ticketMode;
-  if(ticketMode==='jira'){const j=jiraConn();el.innerHTML='Creates a real issue via the CAFI Jira proxy'+(j&&j.api?' (<span class="mono">'+esc(j.api)+'</span>)':'')+' and writes the key back onto the case. Falls back to a local reference if the connector is unreachable (e.g. running offline from file://).';}
+  if(ticketMode==='jira'){const j=jiraConn();el.innerHTML='Links each case to its Jira issue via the CAFI Jira proxy'+(j&&j.api?' (<span class="mono">'+esc(j.api)+'</span>)':'')+' — live status shown on the chip, click to open in Jira. Create ticket raises a new issue only if none exists. Falls back to a local reference if the connector is unreachable (e.g. running offline from file://).';}
   else{el.textContent='Generates a sequential CAFI case reference (e.g. CAFI-1) with no external system required.';}}
 function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;const st=caseState[id];if(!st)return;
   if(ticketMode==='jira'){
@@ -2052,7 +2068,7 @@ function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;co
       .then(r=>r.json().then(data=>({ok:r.ok,data})))
       .then(({ok,data})=>{
         if(ok&&data.key){
-          st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',t:now()};
+          st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',url:'https://cafisecops.atlassian.net/browse/'+data.key,status:'Open',t:now()};
           st.log.push({t:now(),tag:'L5',txt:'Jira issue '+data.key+' created via connector · live'});
         }else{
           const ref='CAFI-'+(++ticketSeq);
