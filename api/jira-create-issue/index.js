@@ -26,9 +26,10 @@ module.exports = async function (context, req) {
           description: {
             type: "doc",
             version: 1,
-            content: [
-              { type: "paragraph", content: [{ type: "text", text: description || "Created via CAFI SecOps console" }] }
-            ]
+            content: (description || "Created via CAFI SecOps console")
+              .split("\n")
+              .filter(line => line.trim().length > 0)
+              .map(line => ({ type: "paragraph", content: [{ type: "text", text: line }] }))
           },
           issuetype: { name: "Task" }
         }
