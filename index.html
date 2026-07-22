@@ -2041,14 +2041,36 @@ function exportCaseJson(id){const c=buildCases().find(x=>x.id===id);if(!c)return
 function setTicketMode(m){ticketMode=m;LS&&LS.set&&LS.set('cafi_ticketmode',m);renderTicketHint();toast(m==='jira'?'Ticketing set to Jira integration':'Ticketing set to built-in case reference');}
 function jiraConn(){return connMeta.find(c=>c.key==='itsm');}
 function renderTicketHint(){const el=$('#ticketModeHint');if(!el)return;const sel=$('#ticketMode');if(sel)sel.value=ticketMode;
-  if(ticketMode==='jira'){const j=jiraConn();el.innerHTML='Creates an issue via the Jira connector'+(j&&j.api?' (<span class="mono">'+esc(j.api)+'</span>)':'')+' and writes the key back onto the case. In the demo the call is dry-run; in production a Logic App creates the issue.';}
+  if(ticketMode==='jira'){const j=jiraConn();el.innerHTML='Creates a real issue via the CAFI Jira proxy'+(j&&j.api?' (<span class="mono">'+esc(j.api)+'</span>)':'')+' and writes the key back onto the case. Falls back to a local reference if the connector is unreachable (e.g. running offline from file://).';}
   else{el.textContent='Generates a sequential CAFI case reference (e.g. CAFI-1) with no external system required.';}}
 function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;const st=caseState[id];if(!st)return;
-  let ref,system;
-  if(ticketMode==='jira'){const j=jiraConn();ref='CAFI-'+(++ticketSeq);system='Jira'+(j&&j.api?' ('+j.api.replace(/^https?:\/\//,'').split('/')[0]+')':'');
-    st.log.push({t:now(),tag:'L5',txt:'Jira issue '+ref+' created via connector'+(j?' '+j.n:'')+' · dry-run in demo, Logic App in production'});}
-  else{ref='CAFI-'+(++ticketSeq);system='Built-in case reference';
-    st.log.push({t:now(),tag:'Analyst',txt:'Built-in ticket '+ref+' raised for this case'});}
+  if(ticketMode==='jira'){
+    const summary='CAFI '+c.id+' - '+c.e.Disposition+' detected on '+c.e.DeviceRef;
+    const tl=caseTimeline(c);
+    const description=tl.map(x=>'['+x.tag+'] '+x.txt).join('\n')+'\n\nCreated from CAFI SecOps console.';
+    fetch('/api/jira-create-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({summary,description})})
+      .then(r=>r.json().then(data=>({ok:r.ok,data})))
+      .then(({ok,data})=>{
+        if(ok&&data.key){
+          st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',t:now()};
+          st.log.push({t:now(),tag:'L5',txt:'Jira issue '+data.key+' created via connector · live'});
+        }else{
+          const ref='CAFI-'+(++ticketSeq);
+          st.ticket={ref,system:'Jira (offline fallback)',t:now()};
+          st.log.push({t:now(),tag:'L5',txt:'Jira call failed ('+(data&&data.error||'unknown error')+') · fell back to local reference '+ref});
+        }
+        renderCases();toast(st.ticket.ref+' — '+st.ticket.system);
+      })
+      .catch(()=>{
+        const ref='CAFI-'+(++ticketSeq);
+        st.ticket={ref,system:'Jira (offline fallback)',t:now()};
+        st.log.push({t:now(),tag:'L5',txt:'Jira connector unreachable · fell back to local reference '+ref});
+        renderCases();toast(st.ticket.ref+' — '+st.ticket.system);
+      });
+    return;
+  }
+  const ref='CAFI-'+(++ticketSeq),system='Built-in case reference';
+  st.log.push({t:now(),tag:'Analyst',txt:'Built-in ticket '+ref+' raised for this case'});
   st.ticket={ref,system,t:now()};renderCases();toast('Ticket '+ref+' raised ('+system+')');}
 /* ---- Autonomy & guardrails ---- */
 function guardrailFor(target){const a=assets.find(x=>eqi(x.Hostname,target)||eqi(x.DeviceId,target));
