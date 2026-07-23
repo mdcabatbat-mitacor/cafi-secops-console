@@ -572,7 +572,7 @@
       </div></div>
       <div class="grid g4" id="caseKpis"></div>
       <div class="grid g2" style="margin-top:16px">
-        <div class="panel"><div class="ph"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" onclick="refreshJiraTickets()" style="margin-left:auto">↻ Refresh Jira Tickets</button><select id="caseStatusFilter" onchange="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;width:150px"></div>
+        <div class="panel"><div class="ph"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" onclick="refreshJiraTickets()" style="margin-left:auto;padding:6px 10px;font-size:12px;line-height:1">↻ Jira Sync</button><select id="caseStatusFilter" onchange="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;width:150px"></div>
           <div class="scroll" style="max-height:440px"><table><thead><tr><th>Case</th><th>Device</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead><tbody id="caseRows"></tbody></table></div></div>
         <div class="panel"><div class="ph"><h3>Evidence Timeline</h3><span class="tag">detect → enrich → explain → act → audit</span></div>
           <div class="pb" id="caseDetail"></div></div>
@@ -1992,7 +1992,7 @@ function renderCases(){
     {lbl:'Analyst overrides (with rationale)',num:overrides.length,bar:'var(--brand)'},
     {lbl:'False positives marked',num:fpFeedback.length,bar:'var(--sup)'},
   ].map(k=>`<div class="panel kpi"><span class="bar" style="background:${k.bar}"></span><div class="pb"><div class="lbl">${k.lbl}</div><div class="num">${k.num}</div></div></div>`).join('');
-  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':'c-sup'}">${r.status}</span></td></tr>`:`<tr class="clk" onclick="window.open('${r.url}','_blank')" title="Open ${r.id} in Jira"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip c-mon">Jira</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
+  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':'c-sup'}">${r.status}</span></td></tr>`:`<tr class="clk" onclick="openCase('${r.id}')" title="View ${r.id}"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip c-mon">Jira</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
   renderCaseDetail();
 }
 function openCase(id){selCase=id;if(!$('#view-cases').classList.contains('on'))show('cases');renderCases();}
@@ -2009,7 +2009,9 @@ function caseTimeline(c){
 function renderCaseDetail(){
   const el=$('#caseDetail');if(!el)return;
   const c=buildCases().find(x=>x.id===selCase);
-  if(!c){el.innerHTML=emptyBox('🗀','Select a case to see its unified evidence timeline — every alert, enrichment step, explanation and response action linked with timestamps.');return;}
+  if(!c){const jtk=jiraTickets.find(t=>t.key===selCase);
+    if(jtk){renderJiraTicketDetail(el,jtk);return;}
+    el.innerHTML=emptyBox('🗀','Select a case to see its unified evidence timeline — every alert, enrichment step, explanation and response action linked with timestamps.');return;}
   const tl=caseTimeline(c);
   const tk=c.st.ticket;
   el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> <span class="chip ${c.st.status==='Open'?'c-inv':'c-sup'}">${c.st.status}</span>${tk?(tk.url?` <a class="chip c-mon" href="${tk.url}" target="_blank" rel="noopener" title="${esc(tk.system)} — open in Jira">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</a>`:` <span class="chip c-mon" title="${esc(tk.system)}">${esc(tk.ref)}</span>`):''}</div></div>
@@ -2059,6 +2061,29 @@ function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
       }
     })
     .catch(()=>{if(!silent)toast('Jira lookup unreachable',true);});}
+function renderJiraTicketDetail(el,tk){
+  if(!caseState[tk.key])caseState[tk.key]={status:tk.status,log:[]};
+  const st=caseState[tk.key];
+  const tl=[{t:new Date(tk.created),tag:'L5',txt:'Jira issue '+tk.key+' created · '+esc(tk.summary||'')}];
+  if(tk.updated&&tk.updated!==tk.created)tl.push({t:new Date(tk.updated),tag:'L5',txt:'Last updated in Jira · status '+esc(tk.status)});
+  (st.log||[]).forEach(l=>tl.push(l));
+  tl.sort((a,b)=>a.t-b.t);
+  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${tk.key}</span> · <b>${esc(tk.device||'—')}</b> <span class="chip c-mon">Jira</span> <a class="chip ${tk.status==='Open'?'c-inv':(/^closed/i.test(tk.status)?'c-sup':'c-mon')}" href="${tk.url}" target="_blank" rel="noopener" title="Open ${tk.key} in Jira">${tk.key} · ${esc(tk.status)}</a></div></div>
+  <div class="feed" style="max-height:280px;overflow:auto">${tl.map(x=>`<div class="row" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:flex-start"><span class="lchip ${/^L\d/.test(x.tag)?x.tag:'L5'}" style="flex:none">${x.tag}</span><div><div class="tiny">${x.txt}</div><div class="tiny muted mono">${fmtT(x.t)}</div></div></div>`).join('')}</div>
+  <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
+    <button class="btn sm" onclick="refreshJiraTickets()">↻ Jira Sync</button>
+    <button class="btn sm" onclick="jiraTicketNote('${tk.key}')">🗒 Add note</button>
+  </div>`;
+}
+async function jiraTicketNote(key){const tk=jiraTickets.find(t=>t.key===key);if(!tk)return;
+  if(!caseState[key])caseState[key]={status:tk.status,log:[]};
+  const note=await incidentPrompt('Analyst note (commented on '+key+'):','');
+  if(!note)return;
+  caseState[key].log.push({t:now(),tag:'Analyst',txt:'Note: '+esc(note)});renderCases();
+  fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'comment',text:note})})
+    .then(r=>r.json())
+    .then(data=>{if(data&&data.ok){caseState[key].log.push({t:now(),tag:'L5',txt:'Note posted to Jira '+key});renderCases();toast('Note added to '+key);}else toast('Jira comment failed',true);})
+    .catch(()=>toast('Jira unreachable — note kept locally',true));}
 function parseJiraSummary(su){const m=/(CASE-[A-Za-z0-9-]+)/.exec(su||'');const d=/ on ([A-Za-z0-9_.-]+)/.exec(su||'');return{caseId:m?m[1]:null,device:d?d[1]:null};}
 function refreshJiraTickets(){fetch('/api/jira-list-issues')
   .then(r=>r.json())
