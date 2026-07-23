@@ -1982,7 +1982,7 @@ function renderCases(){
   let cs=buildCases();
   const caseIds=new Set(cs.map(c=>c.id));
   const jiraOnly=jiraTickets.filter(t=>!(t.caseId&&caseIds.has(t.caseId)));
-  const rows=[...cs.map(c=>({kind:'case',id:c.id,dev:c.e.DeviceRef,role:c.e.AssetRole||'',sev:c.e.Severity,disp:c.e.Disposition,status:c.st.status,c})),...jiraOnly.map(t=>({kind:'jira',id:t.key,dev:t.device||'—',sev:'—',disp:'Jira',status:t.status,url:t.url}))];
+  const rows=[...cs.map(c=>({kind:'case',id:c.id,dev:c.e.DeviceRef,role:c.e.AssetRole||'',sev:c.e.Severity,disp:c.e.Disposition,status:c.st.status,c})),...jiraOnly.map(t=>({kind:'jira',id:t.key,dev:t.device||'—',sev:'—',disp:(caseState[t.key]&&caseState[t.key].dispositionOverride)||'Jira',status:t.status,url:t.url}))];
   const statusMatch=r=>!sf||(sf==='Closed'?String(r.status).toLowerCase().startsWith('closed'):String(r.status).toLowerCase()===sf.toLowerCase());
   const shown=rows.filter(r=>statusMatch(r)&&(!term||(r.id+' '+r.dev+' '+(r.kind==='case'?r.c.e.EventDetail:'')+' '+r.status).toLowerCase().includes(term)));
   const open=cs.filter(c=>c.st.status==='Open').length;
@@ -1992,7 +1992,7 @@ function renderCases(){
     {lbl:'Analyst overrides (with rationale)',num:overrides.length,bar:'var(--brand)'},
     {lbl:'False positives marked',num:fpFeedback.length,bar:'var(--sup)'},
   ].map(k=>`<div class="panel kpi"><span class="bar" style="background:${k.bar}"></span><div class="pb"><div class="lbl">${k.lbl}</div><div class="num">${k.num}</div></div></div>`).join('');
-  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':'c-sup'}">${r.status}</span></td></tr>`:`<tr class="clk" onclick="openCase('${r.id}')" title="View ${r.id}"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip c-mon">Jira</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
+  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`:`<tr class="clk" onclick="openCase('${r.id}')" title="View ${r.id}"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip ${r.disp&&r.disp!=='Jira'?dispClass(r.disp):'c-mon'}">${r.disp&&r.disp!=='Jira'?esc(r.disp):'Jira'}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
   renderCaseDetail();
 }
 function openCase(id){selCase=id;if(!$('#view-cases').classList.contains('on'))show('cases');renderCases();}
@@ -2014,7 +2014,7 @@ function renderCaseDetail(){
     el.innerHTML=emptyBox('🗀','Select a case to see its unified evidence timeline — every alert, enrichment step, explanation and response action linked with timestamps.');return;}
   const tl=caseTimeline(c);
   const tk=c.st.ticket;
-  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> <span class="chip ${c.st.status==='Open'?'c-inv':'c-sup'}">${c.st.status}</span>${tk?(tk.url?` <a class="chip c-mon" href="${tk.url}" target="_blank" rel="noopener" title="${esc(tk.system)} — open in Jira">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</a>`:` <span class="chip c-mon" title="${esc(tk.system)}">${esc(tk.ref)}</span>`):''}</div></div>
+  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> <span class="chip ${c.st.status==='Open'?'c-inv':(/^closed/i.test(c.st.status)?'c-sup':'c-mon')}">${esc(c.st.status)}</span>${tk?(tk.url?` <a class="chip c-mon" href="${tk.url}" target="_blank" rel="noopener" title="${esc(tk.system)} — open in Jira">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</a>`:` <span class="chip c-mon" title="${esc(tk.system)}">${esc(tk.ref)}</span>`):''}</div></div>
   <div class="feed" style="max-height:280px;overflow:auto">${tl.map(x=>`<div class="row" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:flex-start"><span class="lchip ${/^L\d/.test(x.tag)?x.tag:'L5'}" style="flex:none">${x.tag}</span><div><div class="tiny">${x.txt}</div><div class="tiny muted mono">${fmtT(x.t)}</div></div></div>`).join('')}</div>
   <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
     <button class="btn sm" onclick="overrideCase('${c.id}')">✎ Override disposition</button>
@@ -2075,7 +2075,7 @@ function renderJiraTicketDetail(el,tk){
   if(tk.updated&&tk.updated!==tk.created)tl.push({t:new Date(tk.updated),tag:'L5',txt:'Last updated in Jira · status '+esc(tk.status)});
   (st.log||[]).forEach(l=>tl.push(l));
   tl.sort((a,b)=>a.t-b.t);
-  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${tk.key}</span> · <b>${esc(tk.device||'—')}</b> <span class="chip c-mon">Jira</span> <a class="chip ${tk.status==='Open'?'c-inv':(/^closed/i.test(tk.status)?'c-sup':'c-mon')}" href="${tk.url}" target="_blank" rel="noopener" title="Open ${tk.key} in Jira">${tk.key} · ${esc(tk.status)}</a></div></div>
+  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${tk.key}</span> · <b>${esc(tk.device||'—')}</b> <span class="chip c-mon">Jira</span>${st.dispositionOverride?` <span class=\"chip ${dispClass(st.dispositionOverride)}\">${esc(st.dispositionOverride)}</span>`:''} <a class="chip ${tk.status==='Open'?'c-inv':(/^closed/i.test(tk.status)?'c-sup':'c-mon')}" href="${tk.url}" target="_blank" rel="noopener" title="Open ${tk.key} in Jira">${tk.key} · ${esc(tk.status)}</a></div></div>
   <div class="feed" style="max-height:280px;overflow:auto">${tl.map(x=>`<div class="row" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:flex-start"><span class="lchip ${/^L\d/.test(x.tag)?x.tag:'L5'}" style="flex:none">${x.tag}</span><div><div class="tiny">${x.txt}</div><div class="tiny muted mono">${fmtT(x.t)}</div></div></div>`).join('')}</div>
   <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
     <button class="btn sm" onclick="refreshJiraTicket('${tk.key}')" title="Refresh this ticket from Jira">↻</button>
@@ -2139,6 +2139,7 @@ async function jiraTicketOverride(key){const tk=jiraTickets.find(t=>t.key===key)
   const why=await incidentPrompt('Rationale for the override (required, logged):','');
   if(!why)return;
   caseState[key].log.push({t:now(),tag:'Analyst',txt:'Override → '+nd+' · rationale: '+esc(why)});
+  caseState[key].dispositionOverride=nd;
   overrides.push({t:now(),id:key,to:nd,why:why});
   renderCases();toast(key+' override recorded');
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'comment',text:'Analyst override: '+nd+' — '+why})})
@@ -2154,7 +2155,7 @@ async function caseChangeStatus(id){const st=caseState[id];if(!st)return;
   const target=await incidentPrompt('Move '+id+' to which status?',opts[0],opts);
   if(!target)return;
   if(/false positive/i.test(target)){markFP(id);return;}
-  st.status=/^closed/i.test(target)?'Closed':'Open';
+  st.status=target;
   st.log.push({t:now(),tag:'Analyst',txt:'Status changed to '+target});
   if(ticketMode==='jira'&&st.ticket&&st.ticket.url)jiraSync(id,target);else renderCases();
   toast(id+' → '+target);}
