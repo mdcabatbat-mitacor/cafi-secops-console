@@ -572,7 +572,7 @@
       </div></div>
       <div class="grid g4" id="caseKpis"></div>
       <div class="grid g2" style="margin-top:16px">
-        <div class="panel"><div class="ph"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="margin-left:auto;background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;width:180px"></div>
+        <div class="panel"><div class="ph"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" onclick="refreshJiraTickets()" style="margin-left:auto">↻ Refresh Jira Tickets</button><select id="caseStatusFilter" onchange="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;width:150px"></div>
           <div class="scroll" style="max-height:440px"><table><thead><tr><th>Case</th><th>Device</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead><tbody id="caseRows"></tbody></table></div></div>
         <div class="panel"><div class="ph"><h3>Evidence Timeline</h3><span class="tag">detect → enrich → explain → act → audit</span></div>
           <div class="pb" id="caseDetail"></div></div>
@@ -929,7 +929,7 @@ const TASK_TIERS=[
 ];
 const DRIFT_BASE=[{d:'Feb',t:62,s:38},{d:'Mar',t:70,s:48},{d:'Apr',t:78,s:58},{d:'May',t:86,s:70},{d:'Jun',t:92,s:82}];
 let fpFeedback=[], overrides=[], huntLog=[], caseState={}, selCase=null;
-let ticketMode='builtin', ticketSeq=0;
+let ticketMode='builtin', ticketSeq=0; let jiraTickets=[];
 const api={}; // endpoint config per source type
 const connState={}; // live status per source type
 let pollTimer=null, idc=1;
@@ -1978,8 +1978,13 @@ function renderCases(){
   if(!$('#caseRows'))return;
   try{const tm=LS.get('cafi_ticketmode');if(tm)ticketMode=tm;}catch(e){}renderTicketHint();
   const term=($('#caseSearch')&&$('#caseSearch').value||'').toLowerCase();
+  const sf=($('#caseStatusFilter')&&$('#caseStatusFilter').value)||'';
   let cs=buildCases();
-  const shown=term?cs.filter(c=>(c.id+' '+c.e.DeviceRef+' '+c.e.EventDetail+' '+c.st.status).toLowerCase().includes(term)):cs;
+  const caseIds=new Set(cs.map(c=>c.id));
+  const jiraOnly=jiraTickets.filter(t=>!(t.caseId&&caseIds.has(t.caseId)));
+  const rows=[...cs.map(c=>({kind:'case',id:c.id,dev:c.e.DeviceRef,role:c.e.AssetRole||'',sev:c.e.Severity,disp:c.e.Disposition,status:c.st.status,c})),...jiraOnly.map(t=>({kind:'jira',id:t.key,dev:t.device||'—',sev:'—',disp:'Jira',status:t.status,url:t.url}))];
+  const statusMatch=r=>!sf||(sf==='Closed'?String(r.status).toLowerCase().startsWith('closed'):String(r.status).toLowerCase()===sf.toLowerCase());
+  const shown=rows.filter(r=>statusMatch(r)&&(!term||(r.id+' '+r.dev+' '+(r.kind==='case'?r.c.e.EventDetail:'')+' '+r.status).toLowerCase().includes(term)));
   const open=cs.filter(c=>c.st.status==='Open').length;
   $('#caseKpis').innerHTML=[
     {lbl:'Cases (escalations + investigations)',num:cs.length,bar:'var(--cyan)'},
@@ -1987,7 +1992,7 @@ function renderCases(){
     {lbl:'Analyst overrides (with rationale)',num:overrides.length,bar:'var(--brand)'},
     {lbl:'False positives marked',num:fpFeedback.length,bar:'var(--sup)'},
   ].map(k=>`<div class="panel kpi"><span class="bar" style="background:${k.bar}"></span><div class="pb"><div class="lbl">${k.lbl}</div><div class="num">${k.num}</div></div></div>`).join('');
-  $('#caseRows').innerHTML=shown.length?shown.map(c=>`<tr class="clk" onclick="openCase('${c.id}')"><td class="mono tiny">${c.id}</td><td>${esc(c.e.DeviceRef)}<div class="tiny muted">${esc(c.e.AssetRole||'')}</div></td><td>${esc(c.e.Severity)}</td><td><span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span></td><td><span class="chip ${c.st.status==='Open'?'c-inv':'c-sup'}">${c.st.status}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Cases are created from Escalate and Investigate dispositions — load event data to populate the queue.')+'</td></tr>';
+  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':'c-sup'}">${r.status}</span></td></tr>`:`<tr class="clk" onclick="window.open('${r.url}','_blank')" title="Open ${r.id} in Jira"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip c-mon">Jira</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
   renderCaseDetail();
 }
 function openCase(id){selCase=id;if(!$('#view-cases').classList.contains('on'))show('cases');renderCases();}
@@ -2018,18 +2023,18 @@ function renderCaseDetail(){
   </div>`;
   if(ticketMode==='jira'&&!c.st._jiraChecked&&!(c.st.ticket&&c.st.ticket.url)){c.st._jiraChecked=true;lookupJiraTicket(c.id,true);}
 }
-function overrideCase(id){const c=buildCases().find(x=>x.id===id);if(!c)return;
-  const nd=prompt('New disposition (Escalate / Investigate / Monitor / Suppress):',c.e.Disposition);
+async function overrideCase(id){const c=buildCases().find(x=>x.id===id);if(!c)return;
+  const nd=await incidentPrompt('New disposition (Escalate / Investigate / Monitor / Suppress):',c.e.Disposition);
   if(!nd||!['escalate','investigate','monitor','suppress'].includes(nd.toLowerCase()))return toast('Override cancelled — invalid disposition',true);
-  const why=prompt('Rationale for the override (required, logged):','');
+  const why=await incidentPrompt('Rationale for the override (required, logged):','');
   if(!why)return toast('Override cancelled — a rationale is required',true);
   const to=nd[0].toUpperCase()+nd.slice(1).toLowerCase();const from=c.e.Disposition;
   c.e._origDisp=c.e._origDisp||from;c.e.Disposition=to;
   overrides.unshift({t:now(),caseId:id,dev:c.e.DeviceRef,from,to,why});
   caseState[id].log.push({t:now(),tag:'Analyst',txt:'Override '+from+' → '+to+' · rationale: '+esc(why)});
   renderAll();renderCases();toast('Override logged with rationale');}
-function markFP(id){const c=buildCases().find(x=>x.id===id)||{e:EVENTS.find(e=>'CASE-'+e.id===id)};if(!c.e)return;
-  const why=prompt('Why is this a false positive? (required, feeds the detection feedback loop):','');
+async function markFP(id){const c=buildCases().find(x=>x.id===id)||{e:EVENTS.find(e=>'CASE-'+e.id===id)};if(!c.e)return;
+  const why=await incidentPrompt('Why is this a false positive? (required, feeds the detection feedback loop):','');
   if(!why)return toast('Cancelled — a rationale is required',true);
   const r=DETECTIONS.find(r=>r.on&&r.logic.test(c.e.EventDetail||''));if(r)r.fp=(r.fp||0)+1;
   fpFeedback.unshift({t:now(),caseId:id,dev:c.e.DeviceRef,rule:r?r.id+' '+r.name:null,why});
@@ -2054,6 +2059,39 @@ function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
       }
     })
     .catch(()=>{if(!silent)toast('Jira lookup unreachable',true);});}
+function parseJiraSummary(su){const m=/(CASE-[A-Za-z0-9-]+)/.exec(su||'');const d=/ on ([A-Za-z0-9_.-]+)/.exec(su||'');return{caseId:m?m[1]:null,device:d?d[1]:null};}
+function refreshJiraTickets(){fetch('/api/jira-list-issues')
+  .then(r=>r.json())
+  .then(data=>{
+    if(!data||!Array.isArray(data.issues)){toast('Jira sync failed'+(data&&data.error?': '+data.error:''),true);return;}
+    jiraTickets=data.issues.map(t=>{const p=parseJiraSummary(t.summary);return Object.assign({},t,{caseId:p.caseId,device:p.device});});
+    let linked=0;
+    jiraTickets.forEach(t=>{if(t.caseId&&caseState[t.caseId]){const st=caseState[t.caseId];const prev=st.ticket&&st.ticket.status;st.ticket={ref:t.key,system:'Jira (cafisecops.atlassian.net)',url:t.url,status:t.status,t:now()};if(prev&&prev!==t.status)st.log.push({t:now(),tag:'L5',txt:'Jira status updated: '+prev+' → '+t.status});linked++;}});
+    renderCases();toast(jiraTickets.length+' Jira tickets synced'+(linked?' · '+linked+' linked to cases':''));
+  })
+  .catch(()=>toast('Jira unreachable — tickets not synced',true));}
+function incidentPrompt(msg,def){return new Promise(res=>{
+  let box=$('#incidentModal');
+  if(!box){box=document.createElement('div');box.id='incidentModal';
+    box.innerHTML='<div id="imHead">Incident Updates</div><div id="imMsg"></div><input id="imInput"><div id="imBtns"><button class="btn sm" id="imOk">OK</button><button class="btn sm" id="imCancel">Cancel</button></div>';
+    document.body.appendChild(box);
+    box.style.cssText='display:none;position:fixed;z-index:9999;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--bg-2,#101a2c);border:1px solid var(--line);border-radius:10px;min-width:320px;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.5)';
+    $('#imHead').style.cssText='padding:10px 14px;font-weight:600;border-bottom:1px solid var(--line);cursor:move;user-select:none';
+    $('#imMsg').style.cssText='padding:12px 14px;font-size:13px';
+    $('#imInput').style.cssText='margin:0 14px;width:calc(100% - 28px);background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:13px;box-sizing:border-box';
+    $('#imBtns').style.cssText='display:flex;gap:8px;justify-content:flex-end;padding:12px 14px';
+    const head=$('#imHead');let dx=0,dy=0,drag=false;
+    head.addEventListener('mousedown',e=>{drag=true;const r=box.getBoundingClientRect();box.style.transform='none';box.style.left=r.left+'px';box.style.top=r.top+'px';dx=e.clientX-r.left;dy=e.clientY-r.top;e.preventDefault();});
+    document.addEventListener('mousemove',e=>{if(drag){box.style.left=(e.clientX-dx)+'px';box.style.top=(e.clientY-dy)+'px';}});
+    document.addEventListener('mouseup',()=>drag=false);
+  }
+  box.style.display='block';box.style.transform='translate(-50%,-50%)';box.style.left='50%';box.style.top='50%';
+  $('#imMsg').textContent=msg;const inp=$('#imInput');inp.value=def||'';inp.focus();
+  const done=v=>{box.style.display='none';$('#imOk').onclick=null;$('#imCancel').onclick=null;inp.onkeydown=null;res(v);};
+  $('#imOk').onclick=()=>done(inp.value);
+  $('#imCancel').onclick=()=>done(null);
+  inp.onkeydown=e=>{if(e.key==='Enter')done(inp.value);if(e.key==='Escape')done(null);};
+});}
 function jiraSync(id,target){const st=caseState[id];if(ticketMode!=='jira'||!st||!st.ticket||!st.ticket.url)return;
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:st.ticket.ref,action:'transition',targetStatus:target})})
     .then(r=>r.json())
@@ -2062,8 +2100,8 @@ function jiraSync(id,target){const st=caseState[id];if(ticketMode!=='jira'||!st|
       else toast('Jira transition failed'+(data&&data.error?': '+data.error:''),true);
     })
     .catch(()=>toast('Jira unreachable — status not synced',true));}
-function addCaseNote(id){const st=caseState[id];if(!st)return;
-  const note=prompt('Analyst note (logged on the case'+(ticketMode==='jira'&&st.ticket&&st.ticket.url?' and commented on '+st.ticket.ref:'')+'):','');
+async function addCaseNote(id){const st=caseState[id];if(!st)return;
+  const note=await incidentPrompt('Analyst note (logged on the case'+(ticketMode==='jira'&&st.ticket&&st.ticket.url?' and commented on '+st.ticket.ref:'')+'):','');
   if(!note)return;
   st.log.push({t:now(),tag:'Analyst',txt:'Note: '+esc(note)});renderCases();
   if(ticketMode==='jira'&&st.ticket&&st.ticket.url){
