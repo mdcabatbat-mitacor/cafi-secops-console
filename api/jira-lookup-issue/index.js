@@ -2,8 +2,8 @@ module.exports = async function (context, req) {
   try {
     const caseId = (req.query.caseId || "").trim();
 
-    if (!/^CASE-\d+$/.test(caseId)) {
-      context.res = { status: 400, body: { error: "caseId must match CASE-<number>" } };
+    if (!/^CASE-[A-Za-z0-9-]+$/.test(caseId)) {
+      context.res = { status: 400, body: { error: "caseId must match CASE-<id>" } };
       return;
     }
 

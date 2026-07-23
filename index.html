@@ -2014,7 +2014,7 @@ function renderCaseDetail(){
     <button class="btn sm" onclick="markFP('${c.id}')">⚑ Mark false positive</button>
     <button class="btn sm" onclick="closeCase('${c.id}')">${c.st.status==='Open'?'✔ Close case':'↺ Reopen'}</button>
     ${ticketMode==='jira'?(c.st.ticket&&c.st.ticket.url?`<button class="btn sm" onclick="lookupJiraTicket('${c.id}',false)">↻ Refresh Jira status</button>`:`<button class="btn sm" onclick="lookupJiraTicket('${c.id}',false)">🔎 Check Jira</button> <button class="btn sm" onclick="raiseTicket('${c.id}')">🎫 Create ticket</button>`):`<button class="btn sm" onclick="raiseTicket('${c.id}')">${c.st.ticket?'↻ Update ticket':'🎫 Create ticket'}</button>`}
-    <button class="btn sm" onclick="exportCaseJson('${c.id}')">⤓ Evidence package (JSON)</button>
+    <button class="btn sm" onclick="addCaseNote('${c.id}')">🗒 Add note</button>
   </div>`;
   if(ticketMode==='jira'&&!c.st._jiraChecked&&!(c.st.ticket&&c.st.ticket.url)){c.st._jiraChecked=true;lookupJiraTicket(c.id,true);}
 }
@@ -2035,8 +2035,8 @@ function markFP(id){const c=buildCases().find(x=>x.id===id)||{e:EVENTS.find(e=>'
   fpFeedback.unshift({t:now(),caseId:id,dev:c.e.DeviceRef,rule:r?r.id+' '+r.name:null,why});
   c.e._origDisp=c.e._origDisp||c.e.Disposition;c.e.Disposition='Suppress';
   if(caseState[id]){caseState[id].status='Closed — false positive';caseState[id].log.push({t:now(),tag:'Analyst',txt:'Marked false positive · suppressed · rationale: '+esc(why)+(r?' · counted against '+r.id:'')});}
-  renderAll();renderCases();try{renderDetect();}catch(e){}toast('False positive recorded — alert suppressed, FP rate and rule counters updated');}
-function closeCase(id){if(!caseState[id])return;const open=caseState[id].status==='Open';caseState[id].status=open?'Closed':'Open';caseState[id].log.push({t:now(),tag:'Analyst',txt:open?'Case closed':'Case reopened'});renderCases();}
+  jiraSync(id,'Closed - False Positive');renderAll();renderCases();try{renderDetect();}catch(e){}toast('False positive recorded — alert suppressed, FP rate and rule counters updated');}
+function closeCase(id){if(!caseState[id])return;const open=caseState[id].status==='Open';caseState[id].status=open?'Closed':'Open';caseState[id].log.push({t:now(),tag:'Analyst',txt:open?'Case closed':'Case reopened'});jiraSync(id,open?'Closed - Resolved':'Open');renderCases();}
 function exportCaseJson(id){const c=buildCases().find(x=>x.id===id);if(!c)return;
   downloadBlob(id+'_'+stamp()+'.json',JSON.stringify({case:c.id,status:c.st.status,event:c.e,timeline:caseTimeline(c).map(x=>({time:x.t,source:x.tag,entry:x.txt}))},null,2),'application/json');toast('Evidence package exported');}
 function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
@@ -2054,6 +2054,24 @@ function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
       }
     })
     .catch(()=>{if(!silent)toast('Jira lookup unreachable',true);});}
+function jiraSync(id,target){const st=caseState[id];if(ticketMode!=='jira'||!st||!st.ticket||!st.ticket.url)return;
+  fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:st.ticket.ref,action:'transition',targetStatus:target})})
+    .then(r=>r.json())
+    .then(data=>{
+      if(data&&data.ok){st.ticket.status=data.status||target;st.log.push({t:now(),tag:'L5',txt:'Jira '+st.ticket.ref+' transitioned to '+(data.status||target)});renderCases();toast(st.ticket.ref+' → '+(data.status||target));}
+      else toast('Jira transition failed'+(data&&data.error?': '+data.error:''),true);
+    })
+    .catch(()=>toast('Jira unreachable — status not synced',true));}
+function addCaseNote(id){const st=caseState[id];if(!st)return;
+  const note=prompt('Analyst note (logged on the case'+(ticketMode==='jira'&&st.ticket&&st.ticket.url?' and commented on '+st.ticket.ref:'')+'):','');
+  if(!note)return;
+  st.log.push({t:now(),tag:'Analyst',txt:'Note: '+esc(note)});renderCases();
+  if(ticketMode==='jira'&&st.ticket&&st.ticket.url){
+    fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:st.ticket.ref,action:'comment',text:note})})
+      .then(r=>r.json())
+      .then(data=>{if(data&&data.ok){st.log.push({t:now(),tag:'L5',txt:'Note posted to Jira '+st.ticket.ref});renderCases();toast('Note added to case and '+st.ticket.ref);}else toast('Jira comment failed',true);})
+      .catch(()=>toast('Jira unreachable — note kept locally',true));
+  }else toast('Note added to case');}
 function setTicketMode(m){ticketMode=m;LS&&LS.set&&LS.set('cafi_ticketmode',m);renderTicketHint();toast(m==='jira'?'Ticketing set to Jira integration':'Ticketing set to built-in case reference');}
 function jiraConn(){return connMeta.find(c=>c.key==='itsm');}
 function renderTicketHint(){const el=$('#ticketModeHint');if(!el)return;const sel=$('#ticketMode');if(sel)sel.value=ticketMode;
