@@ -3229,11 +3229,17 @@ function heliosContext(){
 }
 async function heliosLive(q){
   const m=helios.model, sys=heliosContext();
-  let url=m.endpoint, headers={'Content-Type':'application/json'}, body;
   if(m.fmt==='anthropic'){
-    headers['x-api-key']=m.key;headers['anthropic-version']='2023-06-01';headers['anthropic-dangerous-direct-browser-access']='true';
-    body={model:m.name||'claude-3-5-sonnet-latest',max_tokens:700,system:sys,messages:[{role:'user',content:q}]};
-  }else if(m.fmt==='gemini'){
+    const pres=await fetch('/api/helios-chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({key:m.key,model:m.name||'claude-3-5-sonnet-latest',system:sys,message:q})});
+    if(!pres.ok)throw new Error('HTTP '+pres.status);
+    const pdata=await pres.json();
+    let ptxt=pdata.text;
+    if(!ptxt)ptxt=JSON.stringify(pdata).slice(0,400);
+    return heliosFormat(ptxt);
+  }
+  let url=m.endpoint, headers={'Content-Type':'application/json'}, body;
+  if(m.fmt==='gemini'){
     url=m.endpoint+'/'+(m.name||'gemini-1.5-flash')+':generateContent?key='+encodeURIComponent(m.key);
     body={contents:[{parts:[{text:sys+'\n\nUser: '+q}]}]};
   }else{ // openai-compatible: openai, grok, mistral, custom
@@ -3244,8 +3250,7 @@ async function heliosLive(q){
   if(!res.ok)throw new Error('HTTP '+res.status);
   const data=await res.json();
   let txt;
-  if(m.fmt==='anthropic')txt=data.content&&data.content[0]&&data.content[0].text;
-  else if(m.fmt==='gemini')txt=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text;
+  if(m.fmt==='gemini')txt=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text;
   else txt=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content;
   if(!txt)txt=JSON.stringify(data).slice(0,400);
   return heliosFormat(txt);
