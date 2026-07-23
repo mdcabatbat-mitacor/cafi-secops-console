@@ -19,10 +19,11 @@ module.exports = async function (context, req) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: model || "claude-3-5-sonnet-latest",
-        max_tokens: 700,
+        model: model || "claude-sonnet-4-6",
+        max_tokens: 1024,
         system: system || "",
-        messages: [{ role: "user", content: message }]
+        messages: [{ role: "user", content: message }],
+        tools: [{ type: "web_search_20250305", name: "web_search" }]
       })
     });
 
@@ -33,7 +34,10 @@ module.exports = async function (context, req) {
       return;
     }
 
-    const text = data.content && data.content[0] && data.content[0].text;
+    const text = (data.content || [])
+      .filter(function (block) { return block.type === "text"; })
+      .map(function (block) { return block.text; })
+      .join("\n");
 
     context.res = {
       status: 200,
