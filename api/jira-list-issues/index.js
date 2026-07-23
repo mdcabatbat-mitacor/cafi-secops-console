@@ -6,7 +6,7 @@ module.exports = async function (context, req) {
     const auth = Buffer.from(`${email}:${token}`).toString("base64");
 
     const jql = "project = CAFI ORDER BY created DESC";
-    const url = `https://${site}.atlassian.net/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=summary,status,created,updated&maxResults=50`;
+    const url = `https://${site}.atlassian.net/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&fields=summary,status,created,updated,description&maxResults=50`;
 
     const jiraRes = await fetch(url, {
       method: "GET",
@@ -20,8 +20,16 @@ module.exports = async function (context, req) {
       return;
     }
 
+    const flat = d => {
+      if (!d || !Array.isArray(d.content)) return [];
+      return d.content
+        .map(p => (p.content || []).map(t => t.text || "").join(""))
+        .filter(x => x.trim().length > 0);
+    };
+
     const issues = (data.issues || []).map(i => ({
       key: i.key,
+      descLines: flat(i.fields.description),
       summary: i.fields.summary,
       status: i.fields.status ? i.fields.status.name : "Unknown",
       created: i.fields.created,

@@ -572,7 +572,7 @@
       </div></div>
       <div class="grid g4" id="caseKpis"></div>
       <div class="grid g2" style="margin-top:16px">
-        <div class="panel"><div class="ph"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" onclick="refreshJiraTickets()" style="margin-left:auto;padding:6px 10px;font-size:12px;line-height:1">↻ Jira Sync</button><select id="caseStatusFilter" onchange="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:12px;width:150px"></div>
+        <div class="panel"><div class="ph"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" onclick="refreshJiraTickets()" style="margin-left:auto;width:150px;height:32px;box-sizing:border-box;padding:0 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)">↻ Jira Sync</button><select id="caseStatusFilter" onchange="renderCases()" style="width:150px;height:32px;box-sizing:border-box;padding:0 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="width:150px;height:32px;box-sizing:border-box;padding:0 10px;font-size:12px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)"></div>
           <div class="scroll" style="max-height:440px"><table><thead><tr><th>Case</th><th>Device</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead><tbody id="caseRows"></tbody></table></div></div>
         <div class="panel"><div class="ph"><h3>Evidence Timeline</h3><span class="tag">detect → enrich → explain → act → audit</span></div>
           <div class="pb" id="caseDetail"></div></div>
@@ -2065,6 +2065,14 @@ function renderJiraTicketDetail(el,tk){
   if(!caseState[tk.key])caseState[tk.key]={status:tk.status,log:[]};
   const st=caseState[tk.key];
   const tl=[{t:new Date(tk.created),tag:'L5',txt:'Jira issue '+tk.key+' created · '+esc(tk.summary||'')}];
+  const base=new Date(tk.created).getTime();
+  const lines=(tk.descLines||[]).map(function(l){return /^\[([^\]]+)\]\s*(.*)$/.exec(l);}).filter(Boolean);
+  if(lines.length){lines.forEach(function(m,i){tl.push({t:new Date(base+i+1),tag:m[1],txt:esc(m[2])});});}
+  else{const ev=EVENTS.filter(function(e){return tk.device&&eqi(e.DeviceRef,tk.device);});
+    if(ev.length){ev.slice(0,3).forEach(function(e){
+      tl.push({t:e.t,tag:'L1',txt:'Detected · '+e.EventSource+' source · '+esc(e.EventDetail||'').slice(0,120)});
+      tl.push({t:e._ing||e.t,tag:'L2',txt:'Context-fused & scored '+e.ContextScore+' → '+e.Disposition+' · confidence '+e.ConfidenceTier});});}
+    else tl.push({t:new Date(base+1),tag:'L5',txt:'No pipeline evidence in this session — ticket was not raised from the CAFI console, and no matching event data is loaded'});}
   if(tk.updated&&tk.updated!==tk.created)tl.push({t:new Date(tk.updated),tag:'L5',txt:'Last updated in Jira · status '+esc(tk.status)});
   (st.log||[]).forEach(l=>tl.push(l));
   tl.sort((a,b)=>a.t-b.t);
@@ -2072,6 +2080,7 @@ function renderJiraTicketDetail(el,tk){
   <div class="feed" style="max-height:280px;overflow:auto">${tl.map(x=>`<div class="row" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:flex-start"><span class="lchip ${/^L\d/.test(x.tag)?x.tag:'L5'}" style="flex:none">${x.tag}</span><div><div class="tiny">${x.txt}</div><div class="tiny muted mono">${fmtT(x.t)}</div></div></div>`).join('')}</div>
   <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
     <button class="btn sm" onclick="refreshJiraTickets()">↻ Jira Sync</button>
+    <button class="btn sm" onclick="jiraTicketTransition('${tk.key}')">⇄ Change status</button>
     <button class="btn sm" onclick="jiraTicketNote('${tk.key}')">🗒 Add note</button>
   </div>`;
 }
@@ -2084,6 +2093,27 @@ async function jiraTicketNote(key){const tk=jiraTickets.find(t=>t.key===key);if(
     .then(r=>r.json())
     .then(data=>{if(data&&data.ok){caseState[key].log.push({t:now(),tag:'L5',txt:'Note posted to Jira '+key});renderCases();toast('Note added to '+key);}else toast('Jira comment failed',true);})
     .catch(()=>toast('Jira unreachable — note kept locally',true));}
+function jiraTicketTransition(key){
+  fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'transitions'})})
+    .then(r=>r.json())
+    .then(function(data){
+      const opts=(data&&data.transitions)||[];
+      if(!opts.length){toast('No Jira transitions available for '+key,true);return;}
+      return incidentPrompt('Move '+key+' to which status?',opts[0],opts).then(function(target){
+        if(!target)return;
+        return fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'transition',targetStatus:target})})
+          .then(r=>r.json())
+          .then(function(d){
+            if(d&&d.ok){
+              const tk=jiraTickets.find(t=>t.key===key);if(tk)tk.status=d.status||target;
+              if(!caseState[key])caseState[key]={status:target,log:[]};
+              caseState[key].log.push({t:now(),tag:'L5',txt:'Jira '+key+' transitioned to '+(d.status||target)});
+              renderCases();toast(key+' → '+(d.status||target));
+            }else toast('Jira transition failed',true);
+          });
+      });
+    })
+    .catch(()=>toast('Jira unreachable — status not synced',true));}
 function parseJiraSummary(su){const m=/(CASE-[A-Za-z0-9-]+)/.exec(su||'');const d=/ on ([A-Za-z0-9_.-]+)/.exec(su||'');return{caseId:m?m[1]:null,device:d?d[1]:null};}
 function refreshJiraTickets(){fetch('/api/jira-list-issues')
   .then(r=>r.json())
@@ -2095,10 +2125,10 @@ function refreshJiraTickets(){fetch('/api/jira-list-issues')
     renderCases();toast(jiraTickets.length+' Jira tickets synced'+(linked?' · '+linked+' linked to cases':''));
   })
   .catch(()=>toast('Jira unreachable — tickets not synced',true));}
-function incidentPrompt(msg,def){return new Promise(res=>{
+function incidentPrompt(msg,def,options){return new Promise(res=>{
   let box=$('#incidentModal');
   if(!box){box=document.createElement('div');box.id='incidentModal';
-    box.innerHTML='<div id="imHead">Incident Updates</div><div id="imMsg"></div><input id="imInput"><div id="imBtns"><button class="btn sm" id="imOk">OK</button><button class="btn sm" id="imCancel">Cancel</button></div>';
+    box.innerHTML='<div id="imHead">Incident Updates</div><div id="imMsg"></div><input id="imInput"><select id="imSelect" style="margin:0 14px;width:calc(100% - 28px);background:var(--bg-3,#0e1626);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:13px;box-sizing:border-box"></select><div id="imBtns"><button class="btn sm" id="imOk">OK</button><button class="btn sm" id="imCancel">Cancel</button></div>';
     document.body.appendChild(box);
     box.style.cssText='display:none;position:fixed;z-index:9999;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--bg-2,#101a2c);border:1px solid var(--line);border-radius:10px;min-width:320px;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.5)';
     $('#imHead').style.cssText='padding:10px 14px;font-weight:600;border-bottom:1px solid var(--line);cursor:move;user-select:none';
@@ -2111,9 +2141,13 @@ function incidentPrompt(msg,def){return new Promise(res=>{
     document.addEventListener('mouseup',()=>drag=false);
   }
   box.style.display='block';box.style.transform='translate(-50%,-50%)';box.style.left='50%';box.style.top='50%';
-  $('#imMsg').textContent=msg;const inp=$('#imInput');inp.value=def||'';inp.focus();
+  $('#imMsg').textContent=msg;const inp=$('#imInput');const sel=$('#imSelect');
+  const useSel=Array.isArray(options)&&options.length>0;
+  inp.style.display=useSel?'none':'block';sel.style.display=useSel?'block':'none';
+  if(useSel){sel.innerHTML=options.map(function(o){return '<option>'+o+'</option>';}).join('');if(def)sel.value=def;sel.focus();}
+  else{inp.value=def||'';inp.focus();}
   const done=v=>{box.style.display='none';$('#imOk').onclick=null;$('#imCancel').onclick=null;inp.onkeydown=null;res(v);};
-  $('#imOk').onclick=()=>done(inp.value);
+  $('#imOk').onclick=()=>done(useSel?sel.value:inp.value);
   $('#imCancel').onclick=()=>done(null);
   inp.onkeydown=e=>{if(e.key==='Enter')done(inp.value);if(e.key==='Escape')done(null);};
 });}

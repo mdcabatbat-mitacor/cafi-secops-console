@@ -14,6 +14,17 @@ module.exports = async function (context, req) {
     const base = `https://${site}.atlassian.net/rest/api/3/issue/${key}`;
     const headers = { "Authorization": `Basic ${auth}`, "Content-Type": "application/json", "Accept": "application/json" };
 
+    if (action === "transitions") {
+      const r = await fetch(`${base}/transitions`, { method: "GET", headers });
+      const d = await r.json();
+      if (!r.ok) {
+        context.res = { status: r.status, body: { error: "Jira transitions fetch failed", details: d } };
+        return;
+      }
+      context.res = { status: 200, body: { transitions: (d.transitions || []).map(t => t.to && t.to.name).filter(Boolean) } };
+      return;
+    }
+
     if (action === "comment") {
       const text = ((req.body.text || "") + "").slice(0, 2000);
       if (!text.trim()) {
