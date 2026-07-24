@@ -16,6 +16,46 @@
       "allowedRoles": ["anonymous", "authenticated"]
     },
     {
+      "route": "*.docx",
+      "statusCode": 404
+    },
+    {
+      "route": "*.csv",
+      "statusCode": 404
+    },
+    {
+      "route": "*.py",
+      "statusCode": 404
+    },
+    {
+      "route": "*.sh",
+      "statusCode": 404
+    },
+    {
+      "route": "*.kql",
+      "statusCode": 404
+    },
+    {
+      "route": "*.log",
+      "statusCode": 404
+    },
+    {
+      "route": "/infra-step1-3/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/lab-scripts/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/docs/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/.github/*",
+      "statusCode": 404
+    },
+    {
       "route": "/*",
       "allowedRoles": ["anonymous", "authenticated"]
     }
