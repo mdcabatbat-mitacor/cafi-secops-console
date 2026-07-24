@@ -16,27 +16,7 @@
       "allowedRoles": ["anonymous", "authenticated"]
     },
     {
-      "route": "*.docx",
-      "statusCode": 404
-    },
-    {
-      "route": "*.csv",
-      "statusCode": 404
-    },
-    {
-      "route": "*.py",
-      "statusCode": 404
-    },
-    {
-      "route": "*.sh",
-      "statusCode": 404
-    },
-    {
-      "route": "*.kql",
-      "statusCode": 404
-    },
-    {
-      "route": "*.log",
+      "route": "/CAFI_Production_Lab_Reference_Guide_Step_1-9_v21.docx",
       "statusCode": 404
     },
     {
