@@ -17,23 +17,23 @@
     },
     {
       "route": "/CAFI_Production_Lab_Reference_Guide_Step_1-9_v21.docx",
-      "statusCode": 404
+      "allowedRoles": ["blocked"]
     },
     {
       "route": "/infra-step1-3/*",
-      "statusCode": 404
+      "allowedRoles": ["blocked"]
     },
     {
       "route": "/lab-scripts/*",
-      "statusCode": 404
+      "allowedRoles": ["blocked"]
     },
     {
       "route": "/docs/*",
-      "statusCode": 404
+      "allowedRoles": ["blocked"]
     },
     {
       "route": "/.github/*",
-      "statusCode": 404
+      "allowedRoles": ["blocked"]
     },
     {
       "route": "/*",
