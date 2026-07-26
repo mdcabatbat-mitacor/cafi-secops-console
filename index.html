@@ -3238,6 +3238,15 @@ function heliosSaveModel(){
   if(prov.custom){const epEl=heliosQ('#hxEp');endpoint=(epEl&&epEl.value||'').trim();}
   const name=(heliosQ('#hxName').value||'').trim()||prov.model;
   if(prov.fmt==='anthropic'){
+    const entra=AUTH&&AUTH.mode==='sso'&&AUTH.user;
+    if(!entra){
+      helios.model=null;
+      try{localStorage.removeItem('helios_cfg');}catch(e){}
+      const s=heliosQ('#hxSettings');if(s)s.remove();
+      heliosBadge();
+      heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">&#9888; <b>Not connected to Claude.</b> Live Claude uses the server API and requires <b>Microsoft Entra</b> sign-in (same as Jira). You are on a local admin session — sign out and use <b>Sign in with Microsoft</b>, then Save &amp; connect again. The built-in analyst remains available offline.</p>');
+      return;
+    }
     helios.model={provider:'claude',label:prov.label,endpoint:prov.endpoint,name:name||'claude-sonnet-4-6',key:'',fmt:'anthropic',serverKey:true};
   }else{
     if(!key){heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Enter an API key, or choose <b>Claude</b> / <b>built-in</b>.</p>');return;}
