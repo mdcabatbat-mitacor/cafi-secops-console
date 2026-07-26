@@ -1262,18 +1262,7 @@ const CTA_LOAD='<button class="btn sm cyan" onclick="show(\'infra\')">＋ Load d
 function renderDataStrip(){
   const esc=EVENTS.filter(e=>e.Disposition==='Escalate').length;
   const posture=!EVENTS.length?['NO DATA','#7a8aa0']:esc>0?['ACTIVE ESCALATIONS','var(--esc)']:['NOMINAL','var(--ok)'];
-  // Always-visible auth mode badge — clarifies why Jira/Helios may be gated
-  let authBadge='';
-  if(AUTH&&AUTH.user){
-    if(AUTH.mode==='sso')
-      authBadge='<span class="chip c-sup" title="Signed in via Microsoft Entra ID — live Jira and Helios available">Entra</span>';
-    else if(authCfg&&authCfg.accessMode==='federated')
-      authBadge='<span class="chip c-inv" title="Local admin (break-glass) — Jira and Helios require Entra sign-in">Local admin</span>';
-    else
-      authBadge='<span class="chip c-mon" title="Local authentication">Local</span>';
-  }
   $('#dataStrip').innerHTML=`<span class="lead" style="color:${posture[1]}"><span class="dot" style="background:${posture[1]};box-shadow:none"></span>${posture[0]}</span>
-    ${authBadge}
     <span class="ds">Events <b>${EVENTS.length}</b></span>
     <span class="ds">Assets <b>${assets.length}</b></span>
     <span class="ds">Maint windows <b>${maintenance.length}</b></span>
@@ -2649,12 +2638,22 @@ function admResetUsers(){if(!confirm('Reset the user directory to a single defau
 function renderIdentity(){
   if(!$('#idModeBody'))return;
   const sso=AUTH.mode==='sso';const u=AUTH.user||{};
-  $('#idModeTag').textContent=sso?'Microsoft Entra ID (SSO)':'Local authentication';
+  const breakGlass=!sso&&authCfg&&authCfg.accessMode==='federated';
+  // Session badge: Entra (live APIs) · Local admin break-glass · Local
+  const badge=sso
+    ?'<span class="chip c-sup" title="Signed in via Microsoft Entra ID — live Jira and Helios available">Entra</span>'
+    :(breakGlass
+      ?'<span class="chip c-inv" title="Local admin (break-glass) — Jira and Helios require Entra sign-in">Local admin</span>'
+      :'<span class="chip c-mon" title="Local authentication">Local</span>');
+  $('#idModeTag').innerHTML=badge+' '+(sso?'Microsoft Entra ID (SSO)':(breakGlass?'Local admin (break-glass)':'Local authentication'));
   $('#idModeBody').innerHTML=sso
-    ?`<div class="conn"><div class="ci" style="color:var(--sup)">✔</div><div class="cinfo"><div class="cn">Microsoft Entra ID — signed in via SSO</div><div class="cd">The role below was read from the token role claim (<span class="mono">${esc(authCfg.roleClaim||'roles')}</span>).</div></div><div class="st ok">LIVE</div></div>
+    ?`<div class="conn"><div class="ci" style="color:var(--sup)">✔</div><div class="cinfo"><div class="cn">Microsoft Entra ID — signed in via SSO ${badge}</div><div class="cd">The role below was read from the token role claim (<span class="mono">${esc(authCfg.roleClaim||'roles')}</span>). Live Jira and Helios are available.</div></div><div class="st ok">LIVE</div></div>
       <table style="margin-top:10px"><tbody><tr><td class="muted tiny">Signed-in user</td><td>${esc(u.u)}</td></tr><tr><td class="muted tiny">Object ID</td><td class="mono tiny">${esc(u.oid||'—')}</td></tr><tr><td class="muted tiny">Role (from claim)</td><td>${esc(u.role)}</td></tr><tr><td class="muted tiny">Claims/groups</td><td class="mono tiny">${esc((u.groups||[]).join(', ')||'—')}</td></tr></tbody></table>`
-    :`<div class="conn"><div class="ci" style="color:var(--cyan)">●</div><div class="cinfo"><div class="cn">Local authentication</div><div class="cd">Signed in with a local account. Enable Federated Authentication above to sign in with Microsoft Entra ID.</div></div><div class="st ok">ACTIVE</div></div>
-      <table style="margin-top:10px"><tbody><tr><td class="muted tiny">Signed-in user</td><td>${esc(u.u||'—')}</td></tr><tr><td class="muted tiny">Role</td><td>${esc(u.role||'—')}</td></tr><tr><td class="muted tiny">Maps to Entra group</td><td class="mono tiny">${u.role==='Administrator'?'CAFI-SOC-Administrators':'CAFI-SOC-Analysts'}</td></tr></tbody></table>`;
+    :(breakGlass
+      ?`<div class="conn"><div class="ci" style="color:var(--inv)">●</div><div class="cinfo"><div class="cn">Local admin (break-glass) ${badge}</div><div class="cd">Federated mode is on, but this session is local admin. Live Jira and Helios require <b>Sign in with Microsoft</b>.</div></div><div class="st off">BREAK-GLASS</div></div>
+      <table style="margin-top:10px"><tbody><tr><td class="muted tiny">Signed-in user</td><td>${esc(u.u||'—')}</td></tr><tr><td class="muted tiny">Role</td><td>${esc(u.role||'—')}</td></tr><tr><td class="muted tiny">Maps to Entra group</td><td class="mono tiny">${u.role==='Administrator'?'CAFI-SOC-Administrators':'CAFI-SOC-Analysts'}</td></tr></tbody></table>`
+      :`<div class="conn"><div class="ci" style="color:var(--cyan)">●</div><div class="cinfo"><div class="cn">Local authentication ${badge}</div><div class="cd">Signed in with a local account. Enable Federated Authentication above to sign in with Microsoft Entra ID.</div></div><div class="st ok">ACTIVE</div></div>
+      <table style="margin-top:10px"><tbody><tr><td class="muted tiny">Signed-in user</td><td>${esc(u.u||'—')}</td></tr><tr><td class="muted tiny">Role</td><td>${esc(u.role||'—')}</td></tr><tr><td class="muted tiny">Maps to Entra group</td><td class="mono tiny">${u.role==='Administrator'?'CAFI-SOC-Administrators':'CAFI-SOC-Analysts'}</td></tr></tbody></table>`);
   $('#roleMap').innerHTML=ROLE_MAP.map(r=>`<tr><td>${r[0]}</td><td style="text-align:center;color:${r[1]==='✔'?'var(--sup)':'var(--ink-faint)'}">${r[1]}</td><td style="text-align:center;color:${r[2]==='✔'?'var(--sup)':'var(--ink-faint)'}">${r[2]}</td></tr>`).join('');
 }
 /* ---- Admin configuration editors (persisted) ---- */
