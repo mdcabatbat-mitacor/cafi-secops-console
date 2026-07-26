@@ -2096,7 +2096,7 @@ function renderCases(){
     {lbl:'Analyst overrides (with rationale)',num:overrides.length,bar:'var(--brand)'},
     {lbl:'False positives marked',num:fpFeedback.length,bar:'var(--sup)'},
   ].map(k=>`<div class="panel kpi"><span class="bar" style="background:${k.bar}"></span><div class="pb"><div class="lbl">${k.lbl}</div><div class="num">${k.num}</div></div></div>`).join('');
-  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`:`<tr class="clk" onclick="openCase('${r.id}')" title="View ${r.id}"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip ${r.disp&&r.disp!=='Jira'?dispClass(r.disp):'c-mon'}">${r.disp&&r.disp!=='Jira'?esc(r.disp):'Jira'}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
+  $('#caseRows').innerHTML=shown.length?shown.map(r=>r.kind==='case'?`<tr class="clk" onclick="openCase('${r.id}')"><td class="mono tiny">${r.id}${r.c.st.ticket&&r.c.st.ticket.ref?`<div class="tiny muted">${esc(r.c.st.ticket.ref)}${r.c.st.ticket.status?' · '+esc(r.c.st.ticket.status):''}</div>`:''}</td><td>${esc(r.dev)}<div class="tiny muted">${esc(r.role)}</div></td><td>${esc(r.sev)}</td><td><span class="chip c-${r.disp==='Escalate'?'esc':'inv'}">${r.disp}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`:`<tr class="clk" onclick="openCase('${r.id}')" title="View ${r.id}"><td class="mono tiny">${r.id}</td><td>${esc(r.dev)}<div class="tiny muted">Jira ticket</div></td><td>—</td><td><span class="chip ${r.disp&&r.disp!=='Jira'?dispClass(r.disp):'c-mon'}">${r.disp&&r.disp!=='Jira'?esc(r.disp):'Jira'}</span></td><td><span class="chip ${r.status==='Open'?'c-inv':(/^closed/i.test(r.status)?'c-sup':'c-mon')}">${esc(r.status)}</span></td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('🗀',term?'No cases match "'+esc(term)+'".':'No cases yet. Load event data to populate the queue, or Refresh Jira Tickets to pull the Jira queue.')+'</td></tr>';
   renderCaseDetail();
 }
 function openCase(id){selCase=id;if(!$('#view-cases').classList.contains('on'))show('cases');renderCases();}
@@ -2340,6 +2340,11 @@ function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;co
         if(ok&&data.key){
           st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',url:'https://cafisecops.atlassian.net/browse/'+data.key,status:'Open',t:now()};
           st.log.push({t:now(),tag:'L5',txt:'Jira issue '+data.key+' created via connector · live'});
+          // Keep jiraTickets in sync so the case queue reflects the new ticket without a manual Jira Sync
+          const entry={key:data.key,summary:summary,status:'Open',url:st.ticket.url,caseId:c.id,device:c.e.DeviceRef};
+          const ix=jiraTickets.findIndex(t=>t.key===data.key);
+          if(ix>=0)jiraTickets[ix]=Object.assign({},jiraTickets[ix],entry);
+          else jiraTickets.unshift(entry);
         }else{
           const ref='CAFI-'+(++ticketSeq);
           st.ticket={ref,system:'Jira (offline fallback)',t:now()};
