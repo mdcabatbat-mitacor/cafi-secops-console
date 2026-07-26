@@ -3221,7 +3221,7 @@ function heliosToggleSettings(){
     if(kw)kw.style.display=(p.fmt==='anthropic')?'none':'block';
     const hint=heliosQ('#hxHint');
     if(hint){
-      if(p.fmt==='anthropic')hint.innerHTML='Claude → <span class="mono">/api/helios-chat</span> + server <span class="mono">ANTHROPIC_API_KEY</span>. Model: <span class="mono">'+esc(p.model)+'</span>. Microsoft sign-in on live site.';
+      if(p.fmt==='anthropic')hint.innerHTML='Same pattern as Jira: key lives on the SWA as <span class="mono">ANTHROPIC_API_KEY</span> (like <span class="mono">JIRA_API_TOKEN</span>). Browser does not send a key. Model: <span class="mono">'+esc(p.model)+'</span>.';
       else if(p.custom)hint.innerHTML=p.note||'';
       else hint.innerHTML='Model: <span class="mono">'+esc(p.model)+'</span> · '+esc(p.endpoint);
     }
@@ -3248,7 +3248,9 @@ function heliosSaveModel(){
   const s=heliosQ('#hxSettings');if(s)s.remove();
   heliosBadge();
   heliosPushMsg('helios',helios.model.fmt==='anthropic'
-    ?'<p>Connected to <b>Claude</b> (<span class="mono">'+esc(helios.model.name)+'</span>) via server key.</p>'
+    ?('<p>Connected to <b>Claude</b> (<span class="mono">'+esc(helios.model.name)+'</span>). '
+      'Using SWA app setting <span class="mono">ANTHROPIC_API_KEY</span> (same pattern as Jira).'
+      +'</p>')
     :'<p>Connected to <b>'+esc(prov.label)+'</b> ('+esc(name)+').</p>');
 }
 function heliosClearModel(){
@@ -3350,7 +3352,7 @@ async function heliosLive(q){
   const m=helios.model, sys=heliosContext();
   if(m.fmt==='anthropic'){
     const pres=await fetch('/api/helios-chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:m.name||'claude-sonnet-4-6',system:sys,message:q,key:m.key||undefined})});
+      body:JSON.stringify({model:m.name||'claude-sonnet-4-6',system:sys,message:q})});
     if(pres.status===401||pres.status===403){
       toastApiAuth('Live Claude (Helios)');
       const e=new Error('Sign in with Microsoft required');e.code='AUTH';throw e;
