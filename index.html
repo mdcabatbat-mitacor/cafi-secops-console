@@ -810,7 +810,7 @@ DeviceId | Severity(Critical/High/Medium/Low) | EventDetail
           <li>Choose a <b>Provider</b> from the dropdown — <b>OpenAI</b>, <b>Claude (Anthropic)</b>, <b>Google Gemini</b>, <b>xAI Grok</b>, <b>Mistral</b>, or <b>Customize</b> for a manual URL. The endpoint is filled in automatically (Customize lets you paste your own).</li>
           <li>Enter the <b>model / deployment name</b> and your <b>API key</b>, then click <b>Save &amp; connect</b> — the badge turns green (● Model Settings, live). If the model is ever unreachable, Helios falls back to the built-in analyst automatically. Your key is stored only in your browser.</li>
         </ol>
-        <p><b>Claude (Anthropic) is proxied.</b> Calls to Claude route through the console's own backend (<span class="mono">/api/helios-chat</span>), so there's no CORS restriction and no direct-browser-access workaround — your key is forwarded server-side per request and never sent straight to Anthropic from the browser. Claude responses are also grounded with live web search for current CVEs and threat advisories, and render full markdown (headers, tables, section dividers) rather than plain text. The other providers still call their APIs directly from the browser and remain subject to the CORS note below.</p>
+        <p><b>Claude (Anthropic) is proxied.</b> Calls to Claude route through the console backend (<span class="mono">/api/helios-chat</span>). On the live site the Anthropic key is read from the SWA app setting <span class="mono">ANTHROPIC_API_KEY</span> — it is not stored in the browser and is not sent from the client. Claude responses can use web search for current CVEs and threat advisories, and render markdown. Other providers still call their APIs from the browser with a key you paste locally and remain subject to the CORS note below.</p>
 
         <div class="note cyan" style="margin-top:16px"><b>CORS / connectivity:</b> a browser opened from <span class="mono">file://</span> can only fetch APIs (including a live Helios model) that send permissive CORS headers. This applies to OpenAI, Google Gemini, xAI Grok, Mistral, and Customize — not Claude, which is proxied server-side as noted above. For staging tests with the other providers, serve the file over your test host or front the API with a gateway that allows the origin. Upload and the built-in Helios analyst always work offline.</div>
 
@@ -3006,7 +3006,7 @@ const APP_HELP={
  guide:{name:'Usage Guide',body:'Built-in documentation: how to load data, the field schemas, how to read each view, and how to use me (Helios).'},
 };
 const HOWTO={
- live:'<h5>How to add a live model</h5><ol><li>In this Helios window, click the <b>&#9881; Model Settings</b> badge (top-right).</li><li>Choose a <b>Provider</b> from the dropdown - OpenAI, Claude (Anthropic), Google Gemini, xAI Grok, Mistral, or Customize for a manual URL. The endpoint is filled in for you (Customize lets you paste your own).</li><li>Enter the <b>model / deployment name</b> and your <b>API key</b>, then click <b>Save &amp; connect</b>. The badge turns green. If the model is ever unreachable I fall back to the built-in analyst automatically. Your key stays in this browser only.</li></ol>',
+ live:'<h5>How to add a live model</h5><ol><li>In this Helios window, click the <b>&#9881; Model Settings</b> badge (top-right).</li><li>Choose a <b>Provider</b> — for <b>Claude</b> no browser key is needed on cafisecops.com (server key). For OpenAI, Gemini, Grok, Mistral or Customize, paste your API key.</li><li>Enter the <b>model / deployment name</b> if needed, then <b>Save &amp; connect</b>. Claude on the live site also requires Microsoft sign-in (Option A). I fall back to the built-in analyst if the model is unreachable.</li></ol>',
  load:'<h5>How to load data</h5><ol><li>Open <b>Data Sources &amp; Ingestion</b> in the sidebar (or the "Load data" button on an empty dashboard).</li><li><b>Upload</b> a CSV/JSON (choose the matching dataset) or configure a live <b>API</b> endpoint and click <b>Connect &amp; fetch</b>.</li><li>Recommended order: AssetInventory &#8594; MaintenanceWindows &#8594; ContextCatalogue &#8594; Events. The queue re-scores automatically as context loads.</li></ol>',
  report:'<h5>How to export a report</h5><ol><li>Open <b>Reports &amp; Export</b> from the sidebar.</li><li>Click <b>Security Report</b> to download a formatted HTML report covering ingestion, detection, hunting, cases, SOAR, autonomy, AI governance and federated training, with an executive summary, dashboard graphs, analysis and recommendations — open it in any browser to read or print.</li><li>Use the CSV cards for raw tabular data, or <b>Extract ALL reports</b> to download the report plus every CSV in one action.</li></ol>',
  use:'<h5>Getting started</h5><ol><li><b>Load data</b> in Data Sources (or use the sample CSVs).</li><li>Scan the <b>Operations Overview</b>, then work the <b>Alert Triage</b> queue top-down.</li><li>Click an alert for its score, Layer-4 explanation and MITRE/CVE intel - or ask me to analyse it.</li><li>Respond via <b>SOAR</b>, and <b>export</b> a report when done.</li><li>Ask me anything - threats, a technique, a CVE, or how any section works.</li></ol>',
@@ -3197,11 +3197,11 @@ function heliosToggleSettings(){
   const opts=HELIOS_PROVIDERS.map(function(p){return '<option value="'+p.id+'"'+(p.id===cur?' selected':'')+'>'+p.label+'</option>';}).join('');
   const d=heliosDoc.createElement('div');d.className='hx-settings';d.id='hxSettings';
   d.innerHTML='<div class="st-t">Model settings</div>'
-   +'<div class="tiny muted">Pick a provider and enter your API key to use a live model, or keep the built-in analyst (no key, works offline). Your key stays in this browser only.</div>'
+   +'<div class="tiny muted">Pick a provider for a live model, or keep the built-in analyst (works offline). <b>Claude</b> uses a server-side key on cafisecops.com (not stored in this browser). Other providers still use a browser key.</div>'
    +'<label>Provider</label><select id="hxProv">'+opts+'</select>'
    +'<div id="hxUrlWrap" style="display:none"><label>Endpoint URL</label><input id="hxEp" placeholder="https://.../chat/completions" value="'+(m.endpoint?esc(m.endpoint):'')+'"></div>'
    +'<label>Model / deployment name</label><input id="hxName" placeholder="model name" value="'+(m.name?esc(m.name):'')+'">'
-   +'<label>API key</label><input id="hxKey" type="password" placeholder="your API key" value="'+(m.key?esc(m.key):'')+'">'
+   +'<div id="hxKeyWrap"><label>API key</label><input id="hxKey" type="password" placeholder="your API key" value="'+(m.key?esc(m.key):'')+'"></div>'
    +'<div class="st-hint" id="hxHint"></div>'
    +'<div style="display:flex;gap:8px;margin-top:10px"><button class="hx-btn cyan" id="hxSave">Save &amp; connect</button><button class="hx-btn" id="hxUseBuiltin">Use built-in</button></div>';
   msgs.insertBefore(d,msgs.firstChild);
@@ -3209,7 +3209,13 @@ function heliosToggleSettings(){
   function sync(){const p=heliosProvider(sel.value);
     const uw=heliosQ('#hxUrlWrap');if(uw)uw.style.display=p.custom?'block':'none';
     const nm=heliosQ('#hxName');if(nm)nm.placeholder=p.model||'model name';
-    const hint=heliosQ('#hxHint');if(hint)hint.innerHTML=p.custom?(p.note||''):('Endpoint: '+esc(p.endpoint)+(p.fmt!=='openai'?(' &middot; '+p.fmt+' format'):''));
+    const kw=heliosQ('#hxKeyWrap');if(kw)kw.style.display=(p.fmt==='anthropic')?'none':'block';
+    const hint=heliosQ('#hxHint');
+    if(hint){
+      if(p.fmt==='anthropic')hint.innerHTML='Claude is proxied via <span class="mono">/api/helios-chat</span>. The Anthropic key is configured on the server (SWA app setting <span class="mono">ANTHROPIC_API_KEY</span>) — nothing is stored in this browser.';
+      else if(p.custom)hint.innerHTML=p.note||'';
+      else hint.innerHTML='Endpoint: '+esc(p.endpoint)+(p.fmt!=='openai'?(' &middot; '+p.fmt+' format'):'')+' &middot; key stays in this browser only';
+    }
   }
   sel.onchange=sync;sync();
   heliosQ('#hxSave').onclick=heliosSaveModel;
@@ -3218,16 +3224,21 @@ function heliosToggleSettings(){
 }
 function heliosSaveModel(){
   const prov=heliosProvider((heliosQ('#hxProv').value||'openai'));
-  const key=(heliosQ('#hxKey').value||'').trim();
+  const keyEl=heliosQ('#hxKey');
+  const key=(keyEl&&keyEl.value||'').trim();
   let endpoint=prov.endpoint;
   if(prov.custom){const epEl=heliosQ('#hxEp');endpoint=(epEl&&epEl.value||'').trim();}
   const name=(heliosQ('#hxName').value||'').trim()||prov.model;
-  if(!key){heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Please enter an API key, or choose "Use built-in".</p>');return;}
+  const serverClaude=(prov.fmt==='anthropic');
+  if(!serverClaude&&!key){heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Please enter an API key, or choose "Use built-in".</p>');return;}
   if(!endpoint){heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Please enter the endpoint URL for this provider.</p>');return;}
-  helios.model={provider:prov.id,label:prov.label,endpoint:endpoint,name:name,key:key,fmt:prov.fmt};
+  helios.model={provider:prov.id,label:prov.label,endpoint:endpoint,name:name,key:serverClaude?'':key,fmt:prov.fmt,serverKey:!!serverClaude};
   try{localStorage.setItem('helios_cfg',JSON.stringify(helios.model));}catch(e){}
   const s=heliosQ('#hxSettings');if(s)s.remove();
-  heliosBadge();heliosPushMsg('helios','<p>Connected to <b>'+esc(prov.label)+'</b> ('+esc(name)+'). I will use it for answers and fall back to the built-in analyst if it is ever unavailable.</p>');
+  heliosBadge();
+  heliosPushMsg('helios',serverClaude
+    ?'<p>Connected to <b>'+esc(prov.label)+'</b> ('+esc(name)+') using the <b>server-side</b> API key. Sign in with Microsoft on the live site if the proxy returns 401.</p>'
+    :'<p>Connected to <b>'+esc(prov.label)+'</b> ('+esc(name)+'). I will use it for answers and fall back to the built-in analyst if it is ever unavailable.</p>');
 }
 function heliosClearModel(){
   helios.model=null;try{localStorage.removeItem('helios_cfg');}catch(e){}
@@ -3328,7 +3339,7 @@ async function heliosLive(q){
   const m=helios.model, sys=heliosContext();
   if(m.fmt==='anthropic'){
     const pres=await fetch('/api/helios-chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({key:m.key,model:m.name||'claude-sonnet-4-6',system:sys,message:q})});
+      body:JSON.stringify({model:m.name||'claude-sonnet-4-6',system:sys,message:q})});
     if(isAuthFailure(pres)){toastApiAuth('Live Claude (Helios)');throw new Error('auth');}
     const hct=(pres.headers&&pres.headers.get&&pres.headers.get('content-type'))||'';
     if(!pres.ok&&!/application\/json/i.test(hct)){toastApiAuth('Live Claude (Helios)');throw new Error('auth');}
