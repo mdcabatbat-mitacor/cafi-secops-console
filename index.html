@@ -3249,8 +3249,7 @@ function heliosSaveModel(){
   heliosBadge();
   heliosPushMsg('helios',helios.model.fmt==='anthropic'
     ?('<p>Connected to <b>Claude</b> (<span class="mono">'+esc(helios.model.name)+'</span>). '
-      'Using SWA app setting <span class="mono">ANTHROPIC_API_KEY</span> (same pattern as Jira).'
-      +'</p>')
+      +'Using SWA app setting <span class="mono">ANTHROPIC_API_KEY</span> (same pattern as Jira).</p>')
     :'<p>Connected to <b>'+esc(prov.label)+'</b> ('+esc(name)+').</p>');
 }
 function heliosClearModel(){
