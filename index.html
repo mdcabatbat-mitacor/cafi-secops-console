@@ -57,7 +57,7 @@
   .clk{font-family:"IBM Plex Mono";color:var(--cyan);font-size:12px}
 
   .main{display:flex;flex-direction:column;min-width:0}
-  .topwrap{position:sticky;top:81px;z-index:6;display:flex;align-items:center;gap:10px;padding:0 18px 0 10px;background:repeating-linear-gradient(45deg,rgba(54,208,224,.06),rgba(54,208,224,.06) 14px,rgba(54,208,224,.03) 14px,rgba(54,208,224,.03) 28px);border-bottom:1px solid rgba(54,208,224,.22)}
+  .topwrap{position:sticky;top:81px;z-index:6;display:flex;align-items:center;gap:10px;padding:0 18px 0 10px;background:linear-gradient(180deg,#0e1624 0%,#0c1420 100%);border-bottom:1px solid rgba(54,208,224,.35);box-shadow:0 6px 16px rgba(0,0,0,.35)}
   .top{flex:1;min-width:0;height:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:0 26px}
   .top .title h2{font-size:19px}
   .top .title p{margin:2px 0 0;font-size:12px;color:var(--ink-faint)}
@@ -324,6 +324,21 @@
   .defrow{display:flex;gap:12px}.defrow>div{flex:1}
   .defbtns{display:flex;gap:10px;align-items:center;padding:14px 20px;border-top:1px solid var(--line)}
   tr.clk{cursor:pointer}tr.clk:hover{background:rgba(127,230,241,.06)}
+
+  #view-guide{width:100%;max-width:none;box-sizing:border-box}
+  #view-guide .panel{width:100% !important;max-width:none !important;box-sizing:border-box}
+  #view-guide .pb{max-width:none !important;width:100% !important;box-sizing:border-box;padding:16px 18px}
+  .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;align-items:start;width:100%;max-width:none;box-sizing:border-box}
+  @media(max-width:900px){.guide-grid{grid-template-columns:1fr}}
+  details.guide-sec{border:1px solid var(--line);border-radius:10px;background:var(--panel2,#0c1420);margin:0;overflow:hidden;break-inside:avoid}
+  details.guide-sec>summary{cursor:pointer;list-style:none;padding:12px 14px;font-family:"Chakra Petch",sans-serif;font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:10px;user-select:none}
+  details.guide-sec>summary::-webkit-details-marker{display:none}
+  details.guide-sec>summary::before{content:"▸";color:var(--cyan);font-size:12px;width:14px;flex:none;transition:transform .15s ease}
+  details.guide-sec[open]>summary::before{transform:rotate(90deg)}
+  details.guide-sec>summary:hover{background:rgba(54,208,224,.06)}
+  details.guide-sec .guide-body{padding:0 14px 14px;border-top:1px solid var(--line);font-size:13px;line-height:1.55;color:var(--ink-dim)}
+  details.guide-sec .guide-body>p:first-child,details.guide-sec .guide-body>ul:first-child,details.guide-sec .guide-body>ol:first-child{margin-top:12px}
+  details.guide-sec .guide-body b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -461,14 +476,18 @@
 
     <!-- ARCHITECTURE / SYSTEM LAYERS -->
     <section class="view" id="view-arch">
-      <div class="note cyan">This console is the analyst-facing surface of the six-layer CAFI SecOps architecture. Every layer below is embedded in the app — the pipeline rail shows how data flows, and each card links straight to where that layer lives. Layer badges (<span class="lchip L1">L1</span> … <span class="lchip L6">L6</span>) are shown on the relevant panels throughout the console. The SOC operations capabilities map onto the same layers — Detection Coverage (L2·L3), Threat Hunting (L3·L4), Case Management (L4·L5), Autonomy &amp; Guardrails (L5) and AI Governance (L2·L5) are operational surfaces of these six layers, not additional layers.</div>
+      <div class="note cyan">This console is the analyst-facing surface of the six-layer CAFI SecOps architecture. Data moves <b>L1 → L2 → L3 → L4 → L5</b>, with <b>L6</b> feeding improved models back into <b>L3</b> (closed learning loop). Layer badges (<span class="lchip L1">L1</span> … <span class="lchip L6">L6</span>) appear on the matching panels. Operational screens map onto the same layers — Detection Coverage (L2·L3), Threat Hunting (L3·L4), Case Management (L4·L5, including live Jira), Autonomy &amp; Guardrails (L5), AI Governance (L2·L5), and Helios (assist across layers). Live Jira and Claude APIs on the hosted site require <b>Microsoft Entra</b> sign-in (Option A); local admin remains available for break-glass access to the shell.</div>
       <div class="panel" style="margin-bottom:16px">
         <div class="ph"><h3>End-to-end data flow</h3><span class="tag">L1 → L6</span></div>
         <div class="pb">
           <svg class="flow-svg" viewBox="0 0 1120 300" style="width:100%;height:auto;display:block;margin:0 auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="CAFI SecOps end-to-end data flow, layers 1 to 6 with L6 feedback loop into L3"><defs><filter id="ds" x="-20%" y="-20%" width="140%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.5"/></filter><marker id="arr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#67789a"/></marker><marker id="arrL6" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f7a8d8"/></marker><marker id="arrL3" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c2b8ff"/></marker></defs><path d="M194,64 H245" fill="none" stroke="#67789a" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arr)"/><path d="M422,64 H473" fill="none" stroke="#67789a" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arr)"/><path d="M650,64 H701" fill="none" stroke="#67789a" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arr)"/><path d="M878,64 H929" fill="none" stroke="#67789a" stroke-width="2.2" stroke-linecap="round" marker-end="url(#arr)"/><g class="fnode" onclick="show('infra')"><rect x="20" y="32" width="168" height="64" rx="11" fill="#101a28" stroke="#7fe6f1" stroke-opacity="0.55" filter="url(#ds)"/><text x="104" y="54" text-anchor="middle" font-size="12.5" font-weight="700" fill="#7fe6f1" letter-spacing="0.5">L1</text><text x="104" y="71" text-anchor="middle" font-size="13.5" font-weight="700" fill="#e7eef8">Ingestion</text><text x="104" y="86" text-anchor="middle" font-size="10" fill="#7f8ea6">Sentinel · IoT · Syslog</text></g><g class="fnode" onclick="show('triage')"><rect x="248" y="32" width="168" height="64" rx="11" fill="#101a28" stroke="#ffd36b" stroke-opacity="0.55" filter="url(#ds)"/><text x="332" y="54" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ffd36b" letter-spacing="0.5">L2</text><text x="332" y="71" text-anchor="middle" font-size="13.5" font-weight="700" fill="#e7eef8">Context Fusion</text><text x="332" y="86" text-anchor="middle" font-size="10" fill="#7f8ea6">ContextualAlertScore</text></g><g class="fnode" onclick="show('ml')"><rect x="476" y="32" width="168" height="64" rx="11" fill="#101a28" stroke="#c2b8ff" stroke-opacity="0.55" filter="url(#ds)"/><text x="560" y="54" text-anchor="middle" font-size="12.5" font-weight="700" fill="#c2b8ff" letter-spacing="0.5">L3</text><text x="560" y="71" text-anchor="middle" font-size="13.5" font-weight="700" fill="#e7eef8">Anomaly ML</text><text x="560" y="86" text-anchor="middle" font-size="10" fill="#7f8ea6">Isolation Forest</text></g><g class="fnode" onclick="show('triage')"><rect x="704" y="32" width="168" height="64" rx="11" fill="#101a28" stroke="#86ddb6" stroke-opacity="0.55" filter="url(#ds)"/><text x="788" y="54" text-anchor="middle" font-size="12.5" font-weight="700" fill="#86ddb6" letter-spacing="0.5">L4</text><text x="788" y="71" text-anchor="middle" font-size="13.5" font-weight="700" fill="#e7eef8">Explainability</text><text x="788" y="86" text-anchor="middle" font-size="10" fill="#7f8ea6">SHAP drivers</text></g><g class="fnode" onclick="show('soar')"><rect x="932" y="32" width="168" height="64" rx="11" fill="#101a28" stroke="#ffc078" stroke-opacity="0.55" filter="url(#ds)"/><text x="1016" y="54" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ffc078" letter-spacing="0.5">L5</text><text x="1016" y="71" text-anchor="middle" font-size="13.5" font-weight="700" fill="#e7eef8">SOAR Response</text><text x="1016" y="86" text-anchor="middle" font-size="10" fill="#7f8ea6">Approval-gated</text></g><g class="fnode" onclick="show('ml')"><rect x="410" y="214" width="300" height="70" rx="12" fill="#16101e" stroke="#f7a8d8" stroke-opacity="0.6" filter="url(#ds)"/><text x="560" y="240" text-anchor="middle" font-size="13" font-weight="700" fill="#f7a8d8">L6 · Federated Orchestrator</text><text x="560" y="259" text-anchor="middle" font-size="10" fill="#9fb1c9">FedAvg + Byzantine defence</text><text x="560" y="273" text-anchor="middle" font-size="9" fill="#7f8ea6">4 sector nodes</text></g><path d="M1016,96 V174 H640 V211" fill="none" stroke="#f7a8d8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrL6)"/><text x="828" y="166" text-anchor="middle" font-size="10.5" fill="#f7a8d8">outcomes + labels</text><path d="M480,214 V158 H560 V99" fill="none" stroke="#c2b8ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrL3)"/><text x="455" y="182" text-anchor="end" font-size="10.5" fill="#c2b8ff">global model</text></svg>
+          <div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px;color:var(--ink-faint);font-size:12px">
+            <span><b style="color:#7fe6f1">L1</b> ingest → <b style="color:#7fe6f1">L2</b> context score → <b style="color:#c2b8ff">L3</b> anomaly → <b style="color:#f2b134">L4</b> explain → <b style="color:#79c0ff">L5</b> respond / case / Jira</span>
+          </div>
           <div class="row" style="justify-content:center;gap:12px;flex-wrap:wrap;margin-top:4px;color:var(--ink-faint);font-size:12px">
-            <span>Closed learning loop — L6 federates model updates across 4 sector nodes and returns an improved anomaly model to <b style="color:#c2b8ff">L3</b>.</span>
+            <span>Closed learning loop — <b style="color:#f7a8d8">L6</b> federates model updates across sector nodes and returns an improved anomaly model to <b style="color:#c2b8ff">L3</b>.</span>
             <button class="btn sm" onclick="show('ml')">View L6 &#8594;</button>
+            <button class="btn sm" onclick="show('cases')">Cases / Jira &#8594;</button>
           </div>
         </div>
       </div>
@@ -738,104 +757,130 @@
 
     <!-- GUIDE -->
     <section class="view guide" id="view-guide">
-      <div class="panel"><div class="pb" style="max-width:900px">
-        <h3 style="margin-top:0">0 · Signing in &amp; roles</h3>
-        <p>The console opens with a <b>sign-in screen</b>. When you run the file on your computer it uses a local demo directory (default administrator <b>admin</b> / <b>admin</b>); when it is hosted on Azure it automatically switches to <b>Microsoft Entra ID</b> single sign-on. The <b>Access Management</b> screen always shows which mode is active — you never have to guess.</p>
-        <p>There are two roles. An <b>Analyst</b> sees the daily workflow — Operations Overview, Alert Triage, Threat Hunting, Case Management, AI Governance and Helios. An <b>Administrator</b> also sees Detection Coverage, System Layers, the Platform tools, Reports, and the Administration screens (Configuration Editors and Access Management). Use the user menu at the top-right to <b>log out</b> and sign back in as a different user. Managing users lives under <b>Access Management</b> (administrator only).</p>
+      <div class="panel"><div class="pb">
+        <p class="tiny muted" style="margin:0 0 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Click a section title to expand or collapse · two columns · live guide for cafisecops.com (Entra, Option A, Jira, Helios Claude).</p>
+        <div class="guide-grid">
 
-        <h3 style="margin-top:0">1 · Get data in</h3>
-        <p>Open <b>Data Sources &amp; Ingestion</b>. Two paths, both real:</p>
-        <ul>
-          <li><b>API integration</b> — choose a source type, paste an endpoint that returns JSON, and <b>Connect &amp; fetch</b>. The console performs a real HTTP request; set an interval and toggle <b>Auto-refresh</b> for real-time monitoring. (Your API/CORS must permit the request — see the note below.)</li>
-          <li><b>Manual upload</b> — drop a CSV or JSON export. Use <b>Download blank template</b> to get the exact header schema for each dataset.</li>
-        </ul>
-        <p>Load order that gives the richest context: <b>AssetInventory → MaintenanceWindows → ContextCatalogue → Events</b>. Watchlists can be loaded after events too — the queue re-scores automatically.</p>
+        <details class="guide-sec" open>
+          <summary>0 · Signing in &amp; roles</summary>
+          <div class="guide-body">
+            <p>The console always starts on a <b>sign-in screen</b>. How you authenticate depends on where you open it:</p>
+            <ul>
+              <li><b>Hosted site (cafisecops.com)</b> — use <b>Sign in with Microsoft</b> for full operations. Entra signs you in through Azure Static Web Apps Easy Auth (<span class="mono">/.auth/login/aad</span>). Live <b>Jira</b> and <b>Helios Claude</b> calls go to <span class="mono">/api/*</span>, which requires an authenticated session (Option A). Without Entra, those APIs return 401 and the UI asks you to sign in with Microsoft.</li>
+              <li><b>Local administrator (break-glass)</b> — default user <b>admin</b> / password <b>admin</b>. Available even when Access Management is set to Federated Authentication. Local admin can use the shell, upload data, and run the built-in Helios analyst, but cannot use live Jira or live Claude until you sign in with Microsoft.</li>
+              <li><b>file:// offline copy</b> — only the local user directory applies; cloud APIs are unavailable (the console states this clearly).</li>
+            </ul>
+            <p><b>Roles.</b> An <b>Analyst</b> sees the daily workflow: Operations Overview, Alert Triage, Threat Hunting, Case Management, AI Governance, Reports (as permitted), and Helios. An <b>Administrator</b> additionally sees Detection Coverage, System Layers, Platform tools (Data Sources, ML &amp; Federation, SOAR), Configuration Editors, and Access Management. In production, roles map to Entra security groups <span class="mono">CAFI-SOC-Analysts</span> and <span class="mono">CAFI-SOC-Administrators</span>.</p>
+            <p>Use the <b>user menu</b> (top-right) to view mode (Entra vs local) and to <b>log out</b>. Hosted logout goes through <span class="mono">/.auth/logout</span> so the SWA session cookie is cleared. Access Management always shows which authentication mode is active.</p>
+          </div>
+        </details>
 
-        <h3>2 · Field mapping</h3>
-        <p>Events accept these fields (common aliases tolerated):</p>
-        <pre class="code">TimeGenerated | EventSource(IT/OT) | DeviceRef(hostname)
-DeviceId | Severity(Critical/High/Medium/Low) | EventDetail
-# optional pre-scored: ContextScore, Disposition</pre>
-        <p>AssetInventory: <code>DeviceId,Hostname,AssetRole,CriticalityTier,OwningSector,SiteCode,Vendor,Protocol</code></p>
-        <p>MaintenanceWindows: <code>WindowId,SiteCode,OwningSector,StartTime,EndTime,WindowType,Description,ApprovedBy</code></p>
-        <p>ContextCatalogue: <code>ContextId,DeviceId,ChangeType,ChangeTimestamp,ChangedBy,ChangeDetail</code></p>
-        <p>Explanations (CAFI_Explanations_CL): <code>DeviceRef,AnomalyScore,NarrativeSummary,PivotSteps,Driver1_Feature,Driver1_SHAPValue …</code></p>
-        <p>AI usage (CASB/DLP feed): <code>TimeGenerated,UserId,Department,AITool,Endpoint,Action,DataClassification,SensitiveDetected,Logged,Detail</code></p>
-        <p>Approved AI tools: <code>AITool,Vendor,Status,Endpoint,Notes</code> &middot; Controlled endpoints: <code>Endpoint,Type,Controlled,Gateway</code></p>
-        <div class="note" style="margin-top:10px"><b>AI Governance (L2·L5).</b> CAFI SecOps enforces four AI policies — approved tools only, no sensitive data in prompts, all usage logged, controlled endpoints. Upstream <b>CASB</b> (Defender for Cloud Apps) and <b>DLP</b> (Purview) block in-line; this console evaluates the policy, runs the <span class="mono">cafi-ai-dlp-response</span> playbook (block session, disable account temporarily, notify) and keeps the audit trail. The built-in <b>Helios</b> assistant is enforced directly: every prompt is screened for sensitive content before it can be sent, and each call is logged on the AI Governance view.</div>
-        <div class="note" style="margin-top:10px"><b>SOC operations (L2–L5).</b> Four operational surfaces sit on the same six layers.
-        <b>Detection Coverage</b> — a live MITRE ATT&amp;CK heat map over the five priority tactics, computed from the enabled detection-as-code rule set (toggle a rule and coverage recomputes); drift is tracked across cycles (history simulated, current point live) and analyst false-positive feedback counts against the matched rule.
-        <b>Threat Hunting</b> — six documented hypotheses run as real queries over the loaded events and AI-usage feed; hunts auto-run on load for a continuous cadence and every run is logged with a MITRE-mapped outcome.
-        <b>Case Management</b> — every Escalate/Investigate disposition becomes a searchable case with one evidence timeline (detect → score → explain → respond → audit); overrides and false-positive marks always require a typed rationale, which is logged.
-        <b>Autonomy &amp; Guardrails</b> — the five-level maturity model (AML 0–4) with the console's current AM level per SOC task, plus the never-autonomous registry (production shutdown, legal notification, cross-environment containment, VIP accounts, OT Class C) enforced in the playbook approval flow. The 7 KPI benchmarks on the Overview state their basis honestly — each value is computed from live session data or marked as pending.</div>
+        <details class="guide-sec">
+          <summary>1 · Get data in</summary>
+          <div class="guide-body">
+            <p>Open <b>Data Sources &amp; Ingestion</b> (administrator platform view). Two supported paths feed the in-session operational picture:</p>
+            <ul>
+              <li><b>API integration</b> — choose a source type (security events, identity, cloud, SaaS, ITSM, ChatOps, watchlists, federation, explanations, AI governance feeds, etc.), paste an endpoint that returns JSON, then <b>Connect &amp; fetch</b>. The browser performs a real HTTP request. Set a refresh interval and enable <b>Auto-refresh</b> for continuous monitoring. The remote API must allow your origin (CORS). Failures surface in the result panel with guidance.</li>
+              <li><b>Manual upload</b> — drop CSV or JSON exports. Use <b>Download blank template</b> for the exact header schema per dataset. <b>Reset all data</b> clears the session stores.</li>
+            </ul>
+            <p><b>Recommended load order</b> for strongest Layer 2 context: <b>AssetInventory → MaintenanceWindows → ContextCatalogue → Events</b>. Watchlists can be loaded after events; the queue re-scores automatically. Explanations, anomaly scores, and fed-audit files enrich triage drawers, ML charts, and case timelines when present.</p>
+            <p>The sticky <b>data strip</b> under the header shows posture (NO DATA / NOMINAL / ACTIVE ESCALATIONS), counts for events, assets, maintenance windows, change events, explanations, and federation rounds, plus last updated time. The « / » control collapses or expands the left navigation.</p>
+            <p class="tiny muted">The Azure lab already holds live LAW tables and ContextualAlertScore; the console remains upload/API-session centric until a dedicated live-query path is wired. Uploaded data does not permanently write back to Sentinel unless you use a separate export process.</p>
+          </div>
+        </details>
 
-        <h3>3 · Read &amp; triage</h3>
-        <ul>
-          <li><b>Overview</b> — KPIs, disposition-coloured volume, the disposition donut, and Layer 2 join quality.</li>
-          <li><b>Triage</b> — ranked by context score. Click a row for the Layer 4 drawer: it looks up a matching <span class="mono">CAFI_Explanations_CL</span> record and shows its SHAP drivers + pivot steps. If none exists, it states so (exactly like the Layer 4 playbook's no-record branch) — nothing is fabricated.</li>
-        </ul>
-        <p>Disposition thresholds: <span class="chip c-esc">Escalate ≥70</span> <span class="chip c-inv">Investigate ≥40</span> <span class="chip c-mon">Monitor ≥15</span> <span class="chip c-sup">Suppress &lt;15</span></p>
-        <p><b>Case Management &amp; ticketing.</b> Every Escalate/Investigate disposition becomes a case with a unified evidence timeline. On the Case Management screen, toggle <b>Ticketing mode</b> between <b>Jira integration</b> and a <b>built-in reference</b> — this choice decides where <b>Create ticket</b> sends new cases. In <b>built-in reference</b> mode, Create ticket simply generates a sequential <span class="mono">CAFI-#</span> number stored in the console's own session state — no external system, no network call, no sign-in required, and it works identically online or offline. It's the right choice for a fully self-contained demo or when there's no Jira project to point at. In <b>Jira integration</b> mode, <b>Create ticket</b> raises a real Jira issue through the console's own Jira proxy and shows the live status on the case's ticket chip — click it to open the issue directly in Jira. If the Jira connector is unreachable in this mode (for example testing offline from <span class="mono">file://</span>), the console falls back automatically to the same kind of local <span class="mono">CAFI-#</span> reference and logs the fallback, so a case is never left without a ticket. <b>↻ Jira Sync</b> pulls any Jira-side changes (status, comments) back into the console; closing, reopening, marking false-positive, or adding a note in the console pushes that change to Jira as a transition or comment — none of this applies in built-in mode, since there's no external system to sync with. Tickets that exist in Jira with no matching local case still appear in the queue and open in the same Evidence Timeline, showing evidence pulled from the Jira issue description or matched local events where available — and honestly stating there is no pipeline evidence if neither exists. Overrides and false-positive marks always go through the <b>Incident Updates</b> dialog and require a typed rationale, which is logged, regardless of ticketing mode.</p>
-        <p><b>Working directly in Jira.</b> For day-to-day triage, the ticket chip and <b>↻ Jira Sync</b> cover most of what you need without leaving the console. To open the raw Jira board directly — for example to assign a ticket, use full filters, or see the project's overall board view — go to <a href="https://cafisecops.atlassian.net" target="_blank" rel="noopener">cafisecops.atlassian.net</a> and sign in with your own Atlassian account credentials; this is a separate login from the console and isn't managed by CAFI SecOps' Access Management. Once signed in, look for the <b>CAFI</b> project: each issue corresponds to one console case, moves through <b>Open → In Progress → Closed – Resolved</b> or <b>Closed – False Positive</b>, and its description holds the same evidence timeline the console shows, written when the ticket was created or last synced.</p>
+        <details class="guide-sec">
+          <summary>2 · Field mapping</summary>
+          <div class="guide-body">
+            <p><b>Events</b> (common aliases accepted):</p>
+            <pre class="code">TimeGenerated | EventSource (IT / OT) | DeviceRef (hostname)
+DeviceId | Severity (Critical / High / Medium / Low) | EventDetail
+# optional if pre-scored upstream: ContextScore, Disposition, ConfidenceTier</pre>
+            <p><b>AssetInventory:</b> <code>DeviceId, Hostname, AssetRole, CriticalityTier, OwningSector, SiteCode, Vendor, Protocol</code></p>
+            <p><b>MaintenanceWindows:</b> <code>WindowId, SiteCode, OwningSector, StartTime, EndTime, WindowType, Description, ApprovedBy</code></p>
+            <p><b>ContextCatalogue / change events:</b> follow the blank template columns (device, change type, window, approver).</p>
+            <p><b>Explanations (L4):</b> records aligned with <span class="mono">CAFI_Explanations_CL</span> style fields so the triage drawer can show SHAP drivers and pivot steps when a matching explanation exists.</p>
+            <p><b>Scoring parity</b> with platform KQL <span class="mono">ContextualAlertScore</span>: Criticality 40 / 20 / 5, Maintenance −25, Change −10 / +5, Unknown asset +30, Severity 50 / 30 / 15. Dispositions: ≥70 Escalate, ≥40 Investigate, ≥15 Monitor, otherwise Suppress. Keep console and Sentinel function weights aligned when either side changes.</p>
+          </div>
+        </details>
 
-        <h3>4 · Act</h3>
-        <p><b>ML &amp; Federation</b> renders from your <span class="mono">fed-audit</span> export. <b>SOAR</b> lets you exercise the Class B approval gate on a selected escalation; actions are logged to the session run log.</p>
+        <details class="guide-sec">
+          <summary>3 · Read &amp; triage</summary>
+          <div class="guide-body">
+            <p><b>Operations Overview</b> — KPI cards (escalations, investigations, average context score, OT share), fused alert volume by disposition, severity mix, and Layer 2 join-quality / context status. Use this as the first glance after load.</p>
+            <p><b>Alert Triage</b> — queue ranked by context score with disposition chips. Open a row for the detail drawer: Layer 4 explanation lookup (SHAP drivers and pivots when explanation data is loaded), MITRE/CVE mapping hooks, and actions into cases.</p>
+            <p><b>Detection Coverage</b> — ATT&amp;CK-oriented heat and detection-as-code posture for the loaded rule pack (administrator depth view).</p>
+            <p><b>Threat Hunting</b> — hypothesis library and hunt runs; findings can feed cases and reports.</p>
+            <p>Watch the data strip while you work: counts should match what you expect after each upload or API fetch. Empty posture <b>NO DATA</b> means the session still has no events.</p>
+          </div>
+        </details>
 
-        <h3>5 · Reports &amp; Export</h3>
-        <p>Open <b>Reports &amp; Export</b> from the sidebar (Administrator only) once you have loaded data. Everything here reads live from the current session — nothing is cached, so refresh your data first for the most current picture.</p>
-        <ul>
-          <li><b>Security Report (HTML)</b> — the primary deliverable. One click builds a formatted document covering the executive summary, data sources &amp; the 25-connector catalogue (active/inactive by group), embedded dashboard graphs (disposition and IT/OT donuts, severity and context-status bars, federated convergence chart), the 7 KPI benchmarks, MITRE ATT&amp;CK detection coverage by tactic, the full threat-hunting hypothesis table, a case register, the SOAR playbook roster with Class A/B/C designation, the AM Level autonomy table, AI governance (the Approved AI Tools allow-list, Controlled AI Endpoints, policy compliance and recent violations), an analysis section and prioritised recommendations. Open the downloaded file in any browser to read or print.</li>
-          <li><b>CSV cards</b> — one per dataset: Alert Queue, Escalations, Asset Inventory, Federation Audit, SOAR Run Log, Case Register, Approved AI Tools, AI Usage &amp; Policy Violations, AI Governance Audit Log, and Hunt Findings. Each is greyed out with "No data" until that dataset has at least one record.</li>
-          <li><b>Extract ALL reports</b> — downloads the Security Report plus every populated CSV card in one action; your browser may ask permission for multiple downloads, allow it.</li>
-          <li><b>Full data snapshot (JSON)</b> — the complete session state, for backup or handoff to another session.</li>
-        </ul>
-        <p>Anything you load via <b>Manual Upload</b> or a live API connection — including Approved AI Tools and Controlled Endpoints, which have their own upload types — flows straight into the Security Report and CSV exports the next time you generate them; there is no separate sync step.</p>
+        <details class="guide-sec">
+          <summary>4 · Act (cases, Jira, SOAR)</summary>
+          <div class="guide-body">
+            <p><b>Case Management</b> turns Escalate and Investigate items into cases with a unified evidence timeline (detect → enrich → explain → act → audit).</p>
+            <ul>
+              <li><b>Jira integration</b> (hosted + Entra) — ticketing mode Jira uses <span class="mono">/api/jira-create-issue</span>, list, lookup, and update. Credentials are SWA app settings <span class="mono">JIRA_SITE</span>, <span class="mono">JIRA_EMAIL</span>, <span class="mono">JIRA_API_TOKEN</span> (never in the browser). Project key <span class="mono">CAFI</span> on cafisecops.atlassian.net. Use <b>Jira Sync</b>, create ticket, refresh status, transitions, and comments from the case UI.</li>
+              <li><b>Offline / local admin</b> — if the API returns 401 or is unreachable, the console keeps a local <span class="mono">CAFI-n</span> reference and states that Microsoft sign-in is required for live Jira rather than silently pretending success.</li>
+              <li><b>Overrides &amp; false positives</b> — always require a rationale; FP feedback can count against detection rules.</li>
+            </ul>
+            <p><b>SOAR Playbooks</b> exercise bounded automation with Class B approval gates; run history stays in session. <b>Autonomy &amp; Guardrails</b> documents maturity level and never-autonomous actions (Class C OT remains manual-only).</p>
+          </div>
+        </details>
 
-        <h3>6 · Helios — your AI cybersecurity assistant</h3>
-        <p><b>What it is.</b> Helios is a built-in AI-powered cybersecurity assistant for real-time threat detection, investigation, and response. It reads your live dashboard data and correlates every alert with <b>MITRE ATT&amp;CK</b> techniques and <b>CVE</b> intelligence, then explains threats and recommends how to analyse and mitigate them. It can also explain any section of the app and guide you through using it.</p>
-        <p><b>How to open it.</b> Click the gold <b>☀ Helios AI</b> button in the top-right of the dashboard. Helios opens in a <b>separate, movable window</b> so your dashboard stays fully visible — drag it to a second monitor or beside the console. (If your browser blocks pop-ups, Helios opens as an in-page panel instead; allow pop-ups to get the separate window.)</p>
-        <p><b>How to use it.</b> Type a question in the input box at the bottom, or tap a suggested prompt. Helios can:</p>
-        <ul>
-          <li><b>Summarise threats</b> — “what's happening / identify threats”.</li>
-          <li><b>Analyse an alert</b> — name a device (e.g. <code>plc-reactor-01</code>), or click <b>☀ Ask Helios to analyse</b> inside any alert's detail drawer.</li>
-          <li><b>Recommend mitigations</b> — “how do I respond?” (it flags OT assets as manual Class-C only).</li>
-          <li><b>Look up intel</b> — a MITRE ID like <code>T1078</code> or a CVE like <code>CVE-2019-0708</code>.</li>
-          <li><b>Explain the app / guide you</b> — “explain the Triage view”, “how do I export a report?”.</li>
-        </ul>
-        <p><b>Automatic incident recognition.</b> While Helios is open, any new escalation that arrives (via upload, API fetch, or auto-refresh) is recognised automatically — Helios posts a flagged incident card with its MITRE/CVE mapping and a recommended response, so you don't have to ask.</p>
-        <p><b>Clear &amp; save your chat.</b> The toolbar under the Helios header has <b>Clear chat</b> (starts a fresh conversation) and <b>Save chat</b>, which downloads a <span class="mono">.doc</span> Word transcript. Handy for attaching an analysis trail to an incident record or your defense pack.</p>
-        <p><b>How to add a live model (optional).</b> By default Helios runs on a built-in, offline analyst that needs no key and always works. To use a live model instead:</p>
-        <ol>
-          <li>Open Helios and click the <b>⚙ Model Settings</b> badge (top-right of the Helios window).</li>
-          <li>Choose a <b>Provider</b> from the dropdown — <b>OpenAI</b>, <b>Claude (Anthropic)</b>, <b>Google Gemini</b>, <b>xAI Grok</b>, <b>Mistral</b>, or <b>Customize</b> for a manual URL. The endpoint is filled in automatically (Customize lets you paste your own).</li>
-          <li>Enter the <b>model / deployment name</b> and your <b>API key</b>, then click <b>Save &amp; connect</b> — the badge turns green (● Model Settings, live). If the model is ever unreachable, Helios falls back to the built-in analyst automatically. Your key is stored only in your browser.</li>
-        </ol>
-        <p><b>Claude (Anthropic) is proxied.</b> Calls to Claude route through the console backend (<span class="mono">/api/helios-chat</span>). On the live site the Anthropic key is read from the SWA app setting <span class="mono">ANTHROPIC_API_KEY</span> — it is not stored in the browser and is not sent from the client. Claude responses can use web search for current CVEs and threat advisories, and render markdown. Other providers still call their APIs from the browser with a key you paste locally and remain subject to the CORS note below.</p>
+        <details class="guide-sec">
+          <summary>5 · Reports &amp; export</summary>
+          <div class="guide-body">
+            <p>Open <b>Reports &amp; Export</b> after data is loaded. Exports read the <b>current session only</b> (nothing is server-cached in the SPA).</p>
+            <ul>
+              <li>Per-dataset <b>CSV</b> cards: Alert Queue, Escalations, Asset Inventory, Federation Audit, SOAR Run Log, Case Register, Approved AI Tools, AI Usage &amp; Policy Violations, AI Governance Audit Log, Hunt Findings. Cards stay disabled until that set has at least one record.</li>
+              <li>Use reports for point-in-time evidence packs, handover, or attaching context to a Jira ticket.</li>
+            </ul>
+            <p>Refresh uploads or API feeds before generating a pack if you need the latest picture.</p>
+          </div>
+        </details>
 
-        <div class="note cyan" style="margin-top:16px"><b>CORS / connectivity:</b> a browser opened from <span class="mono">file://</span> can only fetch APIs (including a live Helios model) that send permissive CORS headers. This applies to OpenAI, Google Gemini, xAI Grok, Mistral, and Customize — not Claude, which is proxied server-side as noted above. For staging tests with the other providers, serve the file over your test host or front the API with a gateway that allows the origin. Upload and the built-in Helios analyst always work offline.</div>
+        <details class="guide-sec">
+          <summary>6 · Helios — AI cybersecurity assistant</summary>
+          <div class="guide-body">
+            <p>Helios is the embedded SOC assistant. It reads session telemetry, maps MITRE ATT&amp;CK and CVE context, explains console areas, and can ground answers with web search when Claude is live.</p>
+            <ul>
+              <li><b>Built-in analyst</b> — works offline and for local admin; no API key; uses in-app knowledge and loaded events.</li>
+              <li><b>Claude (Anthropic)</b> on cafisecops.com — calls <span class="mono">/api/helios-chat</span>. The Function reads <span class="mono">ANTHROPIC_API_KEY</span> from SWA application settings (same pattern as <span class="mono">JIRA_API_TOKEN</span>). The browser does not store or send the Anthropic key. <b>Microsoft Entra sign-in is required.</b> On a local admin session, Model Settings → Save &amp; connect reports that Claude is <b>not connected</b> and asks you to use Sign in with Microsoft.</li>
+              <li><b>Other providers</b> (OpenAI, Gemini, Grok, Mistral, custom) — optional browser keys; subject to CORS when called directly from the browser.</li>
+            </ul>
+            <p>Open Helios from the header. Use <b>Clear chat</b>, <b>Word</b> (download transcript), and <b>Model Settings</b>. Suggested prompts cover triage, MITRE, mitigations, and “how do I use this console?”. While Helios is open, new escalations can appear as automatic incident cards.</p>
+          </div>
+        </details>
 
-        <h3>7 · Administrator configuration</h3>
-        <p>Administrators can configure the console without editing code, under the <b>Administration</b> group:</p>
-        <ul>
-          <li><b>Configuration Editors</b> — add, edit or remove detection rules, threat-hunt hypotheses, SOAR playbooks, never-autonomous guardrails, and connector integrations. <b>Add / Remove APIs</b> multi-selects from the fixed 25-API catalogue (or add a Custom API); changes sync live to L1 Ingestion Connectors and the API Integration source-type list. Changes apply immediately and are saved in your browser, so they persist when you reopen the file locally.</li>
-          <li><b>Access Management</b> — one merged screen. <b>Authentication</b> toggles Local User Authentication or Federated Microsoft Entra ID SSO (with the Tenant ID, Client ID, redirect URLs, role claim and scopes configurable here — the client secret is backend-only, never in the console); <b>Users</b> lets you create and delete local accounts and assign the Analyst or Administrator role (<b>Reset to default admin</b> clears the directory back to one admin account); <b>Signed-in Identity</b> and the <b>Role → Capability map</b> show the current session and what each role can do. In production the two roles map to the Entra security groups <span class="mono">CAFI-SOC-Analysts</span> and <span class="mono">CAFI-SOC-Administrators</span>.</li>
-        </ul>
+        <details class="guide-sec">
+          <summary>7 · Administrator configuration &amp; system layers</summary>
+          <div class="guide-body">
+            <p><b>System Layers</b> — interactive L1–L6 diagram: ingestion → context score → anomaly → explain → respond, with L6 federated learning returning an improved model to L3. Cards jump to the matching console surface. Live Jira sits on the L5 response path; Helios assists across layers.</p>
+            <p><b>Configuration Editors</b> — maintain detection rules, hunt hypotheses, SOAR playbooks, never-autonomous guardrails, and connector integrations (including Add/Remove APIs for the catalogue).</p>
+            <p><b>Access Management</b> — switch Local vs Federated (Entra) mode; configure tenant/client/redirect metadata shown in the UI (client secret remains a backend SWA setting only); manage local users when not federated; review signed-in identity and role capability map.</p>
+            <p><b>AI Governance</b> — approved tools, controlled endpoints, usage policy, Helios prompt screening, and audit-oriented views.</p>
+            <p><b>ML &amp; Federation</b> — Layer 3/4/6 narrative and fed-audit convergence chart from loaded federation exports.</p>
+          </div>
+        </details>
+
+        </div>
       </div></div>
 
       <div class="panel" style="margin-top:16px"><div class="ph"><h3>Operations checklist — validate before promotion</h3><span class="tag">governance appendix</span></div>
         <div class="pb"><div class="checkgrid">
-          <label class="chk"><input type="checkbox"> Endpoints resolve credentials from <code>cafi-keyvault</code> — no raw secrets in the app.</label>
+          <label class="chk"><input type="checkbox"> Secrets live in SWA app settings / Key Vault as designed — none embedded in the SPA.</label>
           <label class="chk"><input type="checkbox"> Least-privilege RBAC on every resource group.</label>
-          <label class="chk"><input type="checkbox"> Sign-in is Microsoft Entra ID when hosted (check Access Management shows Federated Authentication).</label>
+          <label class="chk"><input type="checkbox"> Hosted sign-in uses Microsoft Entra ID (Access Management shows Federated Authentication).</label>
           <label class="chk"><input type="checkbox"> Analyst and Administrator roles map to the two Entra security groups.</label>
-          <label class="chk"><input type="checkbox"> Layer 2 join quality &gt; 80% (watch the Context Status panel).</label>
-          <label class="chk"><input type="checkbox"> MITRE ATT&amp;CK technique coverage ≥ 90% and sub-technique ≥ 80%.</label>
-          <label class="chk"><input type="checkbox"> Threat-hunt hypotheses run on a continuous cadence.</label>
-          <label class="chk"><input type="checkbox"> All Layer 5 playbooks run in shadow mode ≥ 5 true-positive incidents.</label>
+          <label class="chk"><input type="checkbox"> <span class="mono">/api/*</span> requires authenticated users (Option A); local admin shell still opens.</label>
+          <label class="chk"><input type="checkbox"> Live Jira and Helios Claude succeed only when signed in with Microsoft.</label>
+          <label class="chk"><input type="checkbox"> <span class="mono">ANTHROPIC_API_KEY</span> and <span class="mono">JIRA_*</span> present on the SWA (values redacted in CLI is normal).</label>
+          <label class="chk"><input type="checkbox"> Layer 2 join quality &gt; 80% when watchlists + events are loaded (Context Status).</label>
+          <label class="chk"><input type="checkbox"> MITRE ATT&amp;CK coverage targets met for the detection pack in use.</label>
           <label class="chk"><input type="checkbox"> Never-autonomous guardrails reviewed; Class C OT actions manual-only.</label>
           <label class="chk"><input type="checkbox"> AI Governance policies enforced; Helios prompt screening on.</label>
-          <label class="chk"><input type="checkbox"> Budget alerts set on the lab resource groups.</label>
-          <label class="chk"><input type="checkbox"> Datasets de-identified; test tenant isolated from production.</label>
+          <label class="chk"><input type="checkbox"> Budget alerts set; lab datasets de-identified; tenant isolated from production.</label>
         </div></div></div>
     </section>
   </main>
