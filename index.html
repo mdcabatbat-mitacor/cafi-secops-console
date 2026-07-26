@@ -3187,11 +3187,12 @@ async function heliosSend(){
   helios.busy=false;if(send)send.disabled=false;
 }
 const HELIOS_PROVIDERS=[
- {id:'claude',label:'Claude (Anthropic)',endpoint:'/api/helios-chat',model:'claude-sonnet-4-6',fmt:'anthropic',custom:false},
+ {id:'claude',label:'Claude (Anthropic)',endpoint:'https://api.anthropic.com/v1/messages',model:'claude-sonnet-4-6',fmt:'anthropic',custom:false},
  {id:'openai',label:'OpenAI',endpoint:'https://api.openai.com/v1/chat/completions',model:'gpt-4o-mini',fmt:'openai',custom:false},
  {id:'gemini',label:'Google Gemini',endpoint:'https://generativelanguage.googleapis.com/v1beta/models',model:'gemini-2.0-flash',fmt:'gemini',custom:false},
  {id:'grok',label:'xAI Grok',endpoint:'https://api.x.ai/v1/chat/completions',model:'grok-3',fmt:'openai',custom:false},
  {id:'mistral',label:'Mistral',endpoint:'https://api.mistral.ai/v1/chat/completions',model:'mistral-small-latest',fmt:'openai',custom:false},
+ {id:'custom',label:'Customize (manual URL)',endpoint:'',model:'',fmt:'openai',custom:true,note:'Enter any OpenAI-compatible chat-completions URL.'},
 ];
 function heliosProvider(id){return HELIOS_PROVIDERS.find(function(p){return p.id===id;})||HELIOS_PROVIDERS[0];}
 function heliosToggleSettings(){
@@ -3202,20 +3203,27 @@ function heliosToggleSettings(){
   const opts=HELIOS_PROVIDERS.map(function(p){return '<option value="'+p.id+'"'+(p.id===cur?' selected':'')+'>'+p.label+'</option>';}).join('');
   const d=heliosDoc.createElement('div');d.className='hx-settings';d.id='hxSettings';
   d.innerHTML='<div class="st-t">Model settings</div>'
-   +'<div class="tiny muted">Pick a provider for a live model, or use the built-in analyst offline. <b>No API keys are stored in the browser.</b> On cafisecops.com use <b>Claude</b> (server <span class="mono">ANTHROPIC_API_KEY</span> + Microsoft sign-in).</div>'
+   +'<div class="tiny muted">Pick a provider. <b>Claude</b> on the live site uses server <span class="mono">ANTHROPIC_API_KEY</span> (no browser key). Other providers need a browser key.</div>'
    +'<label>Provider</label><select id="hxProv">'+opts+'</select>'
+   +'<div id="hxUrlWrap" style="display:none"><label>Endpoint URL</label><input id="hxEp" placeholder="https://.../chat/completions" value=""></div>'
    +'<label>Model / deployment name</label><input id="hxName" placeholder="model name" value="">'
+   +'<div id="hxKeyWrap"><label>API key</label><input id="hxKey" type="password" placeholder="API key" value=""></div>'
    +'<div class="st-hint" id="hxHint"></div>'
    +'<div style="display:flex;gap:8px;margin-top:10px"><button class="hx-btn cyan" id="hxSave">Save &amp; connect</button><button class="hx-btn" id="hxUseBuiltin">Use built-in</button></div>';
   msgs.insertBefore(d,msgs.firstChild);
   const sel=heliosQ('#hxProv');
-  function sync(){const p=heliosProvider(sel.value);
+  function sync(){
+    const p=heliosProvider(sel.value);
+    const uw=heliosQ('#hxUrlWrap');if(uw)uw.style.display=p.custom?'block':'none';
     const nm=heliosQ('#hxName');
     if(nm){nm.placeholder=p.model||'model name';nm.value=p.model||'';}
+    const kw=heliosQ('#hxKeyWrap');
+    if(kw)kw.style.display=(p.fmt==='anthropic')?'none':'block';
     const hint=heliosQ('#hxHint');
     if(hint){
-      if(p.fmt==='anthropic')hint.innerHTML='Live via <span class="mono">/api/helios-chat</span> + server <span class="mono">ANTHROPIC_API_KEY</span>. Microsoft sign-in required on the live site. No browser key.';
-      else hint.innerHTML='Default model: <span class="mono">'+esc(p.model)+'</span>. Browser API keys are disabled — choose <b>Claude</b> for live answers on cafisecops.com, or Use built-in.';
+      if(p.fmt==='anthropic')hint.innerHTML='Claude → <span class="mono">/api/helios-chat</span> + server <span class="mono">ANTHROPIC_API_KEY</span>. Model: <span class="mono">'+esc(p.model)+'</span>. Microsoft sign-in on live site.';
+      else if(p.custom)hint.innerHTML=p.note||'';
+      else hint.innerHTML='Model: <span class="mono">'+esc(p.model)+'</span> · '+esc(p.endpoint);
     }
   }
   sel.onchange=sync;sync();
@@ -3225,16 +3233,23 @@ function heliosToggleSettings(){
 }
 function heliosSaveModel(){
   const prov=heliosProvider((heliosQ('#hxProv').value||'claude'));
+  const key=(heliosQ('#hxKey')&&heliosQ('#hxKey').value||'').trim();
+  let endpoint=prov.endpoint;
+  if(prov.custom){const epEl=heliosQ('#hxEp');endpoint=(epEl&&epEl.value||'').trim();}
   const name=(heliosQ('#hxName').value||'').trim()||prov.model;
-  if(prov.fmt!=='anthropic'){
-    heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Browser API keys are disabled. Choose <b>Claude (Anthropic)</b> for live answers on cafisecops.com, or <b>Use built-in</b>.</p>');
-    return;
+  if(prov.fmt==='anthropic'){
+    helios.model={provider:'claude',label:prov.label,endpoint:prov.endpoint,name:name||'claude-sonnet-4-6',key:'',fmt:'anthropic',serverKey:true};
+  }else{
+    if(!key){heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Enter an API key, or choose <b>Claude</b> / <b>built-in</b>.</p>');return;}
+    if(!endpoint){heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">Enter the endpoint URL.</p>');return;}
+    helios.model={provider:prov.id,label:prov.label,endpoint:endpoint,name:name,key:key,fmt:prov.fmt};
   }
-  helios.model={provider:'claude',label:'Claude (Anthropic)',endpoint:'/api/helios-chat',name:name||'claude-sonnet-4-6',key:'',fmt:'anthropic',serverKey:true};
   try{localStorage.setItem('helios_cfg',JSON.stringify(helios.model));}catch(e){}
   const s=heliosQ('#hxSettings');if(s)s.remove();
   heliosBadge();
-  heliosPushMsg('helios','<p>Connected to <b>Claude (Anthropic)</b> (<span class="mono">'+esc(helios.model.name)+'</span>) via server key. Sign in with Microsoft on the live site if required.</p>');
+  heliosPushMsg('helios',helios.model.fmt==='anthropic'
+    ?'<p>Connected to <b>Claude</b> (<span class="mono">'+esc(helios.model.name)+'</span>) via server key.</p>'
+    :'<p>Connected to <b>'+esc(prov.label)+'</b> ('+esc(name)+').</p>');
 }
 function heliosClearModel(){
   helios.model=null;try{localStorage.removeItem('helios_cfg');}catch(e){}
@@ -3335,16 +3350,18 @@ async function heliosLive(q){
   const m=helios.model, sys=heliosContext();
   if(m.fmt==='anthropic'){
     const pres=await fetch('/api/helios-chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:m.name||'claude-sonnet-4-6',system:sys,message:q})});
-    if(pres.status===401||pres.status===403){toastApiAuth('Live Claude (Helios)');const e=new Error('Sign in with Microsoft required');e.code='AUTH';throw e;}
-    try{if(pres.redirected&&/\/\.auth\//i.test(pres.url||'')){toastApiAuth('Live Claude (Helios)');const e=new Error('Sign in with Microsoft required');e.code='AUTH';throw e;}}catch(x){if(x&&x.code==='AUTH')throw x;}
+      body:JSON.stringify({model:m.name||'claude-sonnet-4-6',system:sys,message:q,key:m.key||undefined})});
+    if(pres.status===401||pres.status===403){
+      toastApiAuth('Live Claude (Helios)');
+      const e=new Error('Sign in with Microsoft required');e.code='AUTH';throw e;
+    }
     const pdata=await pres.json().catch(function(){return null;});
     if(!pres.ok){
       const msg=(pdata&&(pdata.error||pdata.message))||('HTTP '+pres.status);
       throw new Error(typeof msg==='string'?msg:JSON.stringify(msg));
     }
     let ptxt=pdata&&pdata.text;
-    if(!ptxt)ptxt=pdata?JSON.stringify(pdata).slice(0,400):'Empty response from Helios proxy';
+    if(!ptxt)ptxt=pdata?JSON.stringify(pdata).slice(0,400):'Empty Helios proxy response';
     return heliosFormat(ptxt);
   }
   let url=m.endpoint, headers={'Content-Type':'application/json'}, body;
