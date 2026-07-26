@@ -1262,7 +1262,18 @@ const CTA_LOAD='<button class="btn sm cyan" onclick="show(\'infra\')">＋ Load d
 function renderDataStrip(){
   const esc=EVENTS.filter(e=>e.Disposition==='Escalate').length;
   const posture=!EVENTS.length?['NO DATA','#7a8aa0']:esc>0?['ACTIVE ESCALATIONS','var(--esc)']:['NOMINAL','var(--ok)'];
+  // Always-visible auth mode badge — clarifies why Jira/Helios may be gated
+  let authBadge='';
+  if(AUTH&&AUTH.user){
+    if(AUTH.mode==='sso')
+      authBadge='<span class="chip c-sup" title="Signed in via Microsoft Entra ID — live Jira and Helios available">Entra</span>';
+    else if(authCfg&&authCfg.accessMode==='federated')
+      authBadge='<span class="chip c-inv" title="Local admin (break-glass) — Jira and Helios require Entra sign-in">Local admin</span>';
+    else
+      authBadge='<span class="chip c-mon" title="Local authentication">Local</span>';
+  }
   $('#dataStrip').innerHTML=`<span class="lead" style="color:${posture[1]}"><span class="dot" style="background:${posture[1]};box-shadow:none"></span>${posture[0]}</span>
+    ${authBadge}
     <span class="ds">Events <b>${EVENTS.length}</b></span>
     <span class="ds">Assets <b>${assets.length}</b></span>
     <span class="ds">Maint windows <b>${maintenance.length}</b></span>
@@ -1305,7 +1316,7 @@ function renderOnboard(){
     </div></div>`;
 }
 function renderVol(){
-  if(!EVENTS.length){$('#volChart').innerHTML=emptyBox('▤','No events yet — ingest a batch to populate the stream.');return;}
+  if(!EVENTS.length){$('#volChart').innerHTML=emptyBox('▤','No events yet — load watchlists and events under Data Sources to populate the stream.',CTA_LOAD);return;}
   const W=720,H=210,p=26,buckets=24;
   const arr=Array.from({length:buckets},()=>({Escalate:0,Investigate:0,Monitor:0,Suppress:0}));
   const t0=EVENTS[0].t.getTime(),span=Math.max(1,EVENTS[EVENTS.length-1].t.getTime()-t0);
@@ -1317,7 +1328,7 @@ function renderVol(){
   $('#volChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${bars}</svg>`;
 }
 function renderDonut(){
-  if(!EVENTS.length){$('#dispDonut').innerHTML=emptyBox('◔','No dispositions yet.');$('#dispLegend').innerHTML='';return;}
+  if(!EVENTS.length){$('#dispDonut').innerHTML=emptyBox('◔','No dispositions yet — load events to see the ContextualAlertScore mix.',CTA_LOAD);$('#dispLegend').innerHTML='';return;}
   const c={Escalate:0,Investigate:0,Monitor:0,Suppress:0};EVENTS.forEach(e=>{if(c[e.Disposition]!=null)c[e.Disposition]++;});
   const tot=EVENTS.length,col={Escalate:'var(--esc)',Investigate:'var(--inv)',Monitor:'var(--mon)',Suppress:'var(--sup)'};
   const R=58,C=2*Math.PI*R;let off=0,segs='';
@@ -1326,13 +1337,13 @@ function renderDonut(){
   $('#dispLegend').innerHTML=Object.keys(c).map(k=>`<div class="row between" style="padding:4px 0;border-bottom:1px solid var(--line)"><span class="row" style="gap:8px"><i style="width:10px;height:10px;border-radius:3px;display:inline-block;background:${col[k]}"></i>${k}</span><span class="mono">${c[k]} · ${Math.round(c[k]/tot*100)}%</span></div>`).join('');
 }
 function renderSev(){
-  if(!EVENTS.length){$('#sevChart').innerHTML=emptyBox('▦','No severity data.');return;}
+  if(!EVENTS.length){$('#sevChart').innerHTML=emptyBox('▦','No severity data — ingest events to populate the severity breakdown.',CTA_LOAD);return;}
   const c={Critical:0,High:0,Medium:0,Low:0};EVENTS.forEach(e=>{if(c[e.Severity]!=null)c[e.Severity]++;});
   const max=Math.max(1,...Object.values(c));
   $('#sevChart').innerHTML=['Critical','High','Medium','Low'].map(s=>`<div style="margin-bottom:12px"><div class="row between tiny" style="margin-bottom:4px"><span>${s}</span><span class="mono muted">${c[s]}</span></div><div class="meter"><span style="width:${c[s]/max*100}%;background:${sevColor(s)}"></span></div></div>`).join('');
 }
 function renderCtx(){
-  if(!EVENTS.length){$('#ctxStatus').innerHTML=emptyBox('◈','No context resolved yet.');return;}
+  if(!EVENTS.length){$('#ctxStatus').innerHTML=emptyBox('◈','No context resolved yet — load AssetInventory and events to compute join quality.',CTA_LOAD);return;}
   const c={NormalOps:0,InMaintenance:0,RecentlyChanged:0,UnknownAsset:0};EVENTS.forEach(e=>{if(c[e.ContextStatus]!=null)c[e.ContextStatus]++;});
   const tot=EVENTS.length,q=Math.round((tot-c.UnknownAsset)/tot*100);
   const col={NormalOps:'var(--sup)',InMaintenance:'var(--mon)',RecentlyChanged:'var(--inv)',UnknownAsset:'var(--esc)'};
@@ -1360,7 +1371,7 @@ function renderTriage(){
   const fd=$('#fltDisp').value,fs=$('#fltSrc').value;
   let list=[...EVENTS].sort((a,b)=>b.ContextScore-a.ContextScore);
   if(fd)list=list.filter(e=>e.Disposition===fd);if(fs)list=list.filter(e=>e.EventSource===fs);
-  $('#triageRows').innerHTML=list.length?list.map(e=>rowHtml(e,true)).join(''):'<tr><td colspan="9">'+emptyBox('⚑',EVENTS.length?'No events match the filter.':'No events ingested yet.')+'</td></tr>';
+  $('#triageRows').innerHTML=list.length?list.map(e=>rowHtml(e,true)).join(''):'<tr><td colspan="9">'+emptyBox('⚑',EVENTS.length?'No events match the filter.':'No events ingested yet — load data under Data Sources to build the triage queue.',EVENTS.length?'':CTA_LOAD)+'</td></tr>';
   const k=d=>EVENTS.filter(e=>e.Disposition===d).length;
   $('#triageKpis').innerHTML=[['Escalate','var(--esc)'],['Investigate','var(--inv)'],['Monitor','var(--mon)'],['Suppress','var(--sup)']]
     .map(([d,bar])=>`<div class="panel kpi"><span class="bar" style="background:${bar}"></span><div class="pb"><div class="lbl">${d}</div><div class="num">${k(d)}</div></div></div>`).join('');
@@ -2582,6 +2593,7 @@ function finishLogin(){
   const chip=$('#userChip');if(chip)chip.style.display='flex';
   const u=AUTH.user;$('#uName').textContent=u.u;$('#uRole').textContent=u.role;$('#uAva').textContent=(u.u||'?').slice(0,1).toUpperCase();
   updateModeLine();applyRole();try{renderAccess();}catch(e){}
+  try{renderDataStrip();}catch(e){}
   toast('Signed in as '+u.u+' ('+u.role+')');
 }
 function doLogout(ev){
