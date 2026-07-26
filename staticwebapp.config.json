@@ -36,6 +36,14 @@
       "allowedRoles": ["blocked"]
     },
     {
+      "route": "/api/hello",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
       "route": "/*",
       "allowedRoles": ["anonymous", "authenticated"]
     }
