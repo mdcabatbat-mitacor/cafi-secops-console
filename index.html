@@ -859,6 +859,37 @@ const now=()=>new Date();
 const fmtT=d=>pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
 const eqi=(a,b)=>a!=null&&b!=null&&String(a).trim().toLowerCase()===String(b).trim().toLowerCase();
 function toast(m,err){const t=$('#toast');t.textContent=m;t.className='toast on'+(err?' err':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',3000);}
+function apiNeedsSignIn(status){return status===401||status===403;}
+function isFileOrigin(){try{return location.protocol==='file:';}catch(e){return false;}}
+function toastApiAuth(feature){toast((feature||'This feature')+' requires Microsoft sign-in on the live site. Use Sign in with Microsoft (Entra).',true);}
+function toastApiUnavailable(feature,err){
+  if(isFileOrigin()){
+    toast((feature||'This API')+' only works on the live site (https://cafisecops.com). You opened a local file — use built-in tickets offline, or open the hosted console.',true);
+    return;
+  }
+  if(err&&err.code==='AUTH')return;
+  toast((feature||'API')+' unreachable',true);
+}
+function isAuthFailure(r){
+  if(!r)return false;
+  if(apiNeedsSignIn(r.status))return true;
+  try{if(r.redirected&&/\/\.auth\//i.test(r.url||''))return true;}catch(e){}
+  try{if(/\/\.auth\//i.test(r.url||''))return true;}catch(e){}
+  return false;
+}
+async function readApiJson(r,feature,silent){
+  if(isAuthFailure(r)){if(!silent)toastApiAuth(feature);const e=new Error('auth');e.code='AUTH';throw e;}
+  const ct=(r.headers&&r.headers.get&&r.headers.get('content-type'))||'';
+  if(!r.ok){
+    // Non-JSON error bodies (HTML login / gateway pages) after Option A
+    if(!/application\/json/i.test(ct)){if(!silent)toastApiAuth(feature);const e=new Error('auth');e.code='AUTH';throw e;}
+  }
+  try{return await r.json();}catch(x){
+    if(!r.ok){if(!silent)toastApiAuth(feature);const e=new Error('auth');e.code='AUTH';throw e;}
+    return null;
+  }
+}
+
 
 /* ---------- stores (all start EMPTY) ---------- */
 let assets=[], maintenance=[], changes=[], EVENTS=[], explanations=[], fedRounds=[];
@@ -2075,7 +2106,7 @@ function exportCaseJson(id){const c=buildCases().find(x=>x.id===id);if(!c)return
   downloadBlob(id+'_'+stamp()+'.json',JSON.stringify({case:c.id,status:c.st.status,event:c.e,timeline:caseTimeline(c).map(x=>({time:x.t,source:x.tag,entry:x.txt}))},null,2),'application/json');toast('Evidence package exported');}
 function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
   fetch('/api/jira-lookup-issue?caseId='+encodeURIComponent(id))
-    .then(r=>r.json())
+    .then(r=>readApiJson(r,'Jira',silent))
     .then(data=>{
       if(data&&data.found){
         const prev=st.ticket&&st.ticket.status;
@@ -2087,7 +2118,7 @@ function lookupJiraTicket(id,silent){const st=caseState[id];if(!st)return;
         if(!silent)toast('No Jira issue found for '+id,true);
       }
     })
-    .catch(()=>{if(!silent)toast('Jira lookup unreachable',true);});}
+    .catch(e=>{if(e&&e.code==='AUTH')return;if(!silent)toastApiUnavailable('Jira',e);});}
 function renderJiraTicketDetail(el,tk){
   if(!caseState[tk.key])caseState[tk.key]={status:tk.status,log:[]};
   const st=caseState[tk.key];
@@ -2118,19 +2149,19 @@ async function jiraTicketNote(key){const tk=jiraTickets.find(t=>t.key===key);if(
   if(!note)return;
   caseState[key].log.push({t:now(),tag:'Analyst',txt:'Note: '+esc(note)});renderCases();
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'comment',text:note})})
-    .then(r=>r.json())
+    .then(r=>readApiJson(r,'Jira'))
     .then(data=>{if(data&&data.ok){caseState[key].log.push({t:now(),tag:'L5',txt:'Note posted to Jira '+key});renderCases();toast('Note added to '+key);}else toast('Jira comment failed',true);})
-    .catch(()=>toast('Jira unreachable — note kept locally',true));}
+    .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
 function jiraTicketTransition(key){
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'transitions'})})
-    .then(r=>r.json())
+    .then(r=>readApiJson(r,'Jira'))
     .then(function(data){
       const opts=(data&&data.transitions)||[];
       if(!opts.length){toast('No Jira transitions available for '+key,true);return;}
       return incidentPrompt('Move '+key+' to which status?',opts[0],opts).then(function(target){
         if(!target)return;
         return fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'transition',targetStatus:target})})
-          .then(r=>r.json())
+          .then(r=>readApiJson(r,'Jira'))
           .then(function(d){
             if(d&&d.ok){
               const tk=jiraTickets.find(t=>t.key===key);if(tk)tk.status=d.status||target;
@@ -2141,10 +2172,10 @@ function jiraTicketTransition(key){
           });
       });
     })
-    .catch(()=>toast('Jira unreachable — status not synced',true));}
+    .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
 function refreshJiraTicket(key){
   fetch('/api/jira-list-issues')
-    .then(r=>r.json())
+    .then(r=>readApiJson(r,'Jira'))
     .then(function(data){
       const t=(data&&data.issues||[]).find(x=>x.key===key);
       if(!t){toast('Ticket '+key+' not found in Jira',true);return;}
@@ -2159,7 +2190,7 @@ function refreshJiraTicket(key){
       }
       renderCases();toast(key+' · '+nt.status);
     })
-    .catch(()=>toast('Jira unreachable',true));}
+    .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
 async function jiraTicketOverride(key){const tk=jiraTickets.find(t=>t.key===key);if(!tk)return;
   if(!caseState[key])caseState[key]={status:tk.status,log:[]};
   const nd=await incidentPrompt('Analyst override for '+key+' — set disposition:','Investigate',['Escalate','Investigate','Monitor','Suppress']);
@@ -2171,9 +2202,9 @@ async function jiraTicketOverride(key){const tk=jiraTickets.find(t=>t.key===key)
   overrides.push({t:now(),id:key,to:nd,why:why});
   renderCases();toast(key+' override recorded');
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,action:'comment',text:'Analyst override: '+nd+' — '+why})})
-    .then(r=>r.json())
+    .then(r=>readApiJson(r,'Jira'))
     .then(function(d){if(d&&d.ok){caseState[key].log.push({t:now(),tag:'L5',txt:'Override posted to Jira '+key});renderCases();}})
-    .catch(function(){});}
+    .catch(function(e){if(e&&e.code==='AUTH')return;});}
 async function caseChangeStatus(id){const st=caseState[id];if(!st)return;
   let opts=['Open','Closed - Resolved','Closed - False Positive'];
   if(ticketMode==='jira'&&st.ticket&&st.ticket.url){
@@ -2189,7 +2220,7 @@ async function caseChangeStatus(id){const st=caseState[id];if(!st)return;
   toast(id+' → '+target);}
 function parseJiraSummary(su){const m=/(CASE-[A-Za-z0-9-]+)/.exec(su||'');const d=/ on ([A-Za-z0-9_.-]+)/.exec(su||'');return{caseId:m?m[1]:null,device:d?d[1]:null};}
 function refreshJiraTickets(){fetch('/api/jira-list-issues')
-  .then(r=>r.json())
+  .then(r=>readApiJson(r,'Jira'))
   .then(data=>{
     if(!data||!Array.isArray(data.issues)){toast('Jira sync failed'+(data&&data.error?': '+data.error:''),true);return;}
     jiraTickets=data.issues.map(t=>{const p=parseJiraSummary(t.summary);return Object.assign({},t,{caseId:p.caseId,device:p.device});});
@@ -2197,7 +2228,7 @@ function refreshJiraTickets(){fetch('/api/jira-list-issues')
     jiraTickets.forEach(t=>{if(t.caseId&&caseState[t.caseId]){const st=caseState[t.caseId];const prev=st.ticket&&st.ticket.status;st.ticket={ref:t.key,system:'Jira (cafisecops.atlassian.net)',url:t.url,status:t.status,t:now()};if(prev&&prev!==t.status)st.log.push({t:now(),tag:'L5',txt:'Jira status updated: '+prev+' → '+t.status});linked++;}});
     renderCases();toast(jiraTickets.length+' Jira tickets synced'+(linked?' · '+linked+' linked to cases':''));
   })
-  .catch(()=>toast('Jira unreachable — tickets not synced',true));}
+  .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
 function incidentPrompt(msg,def,options){return new Promise(res=>{
   let box=$('#incidentModal');
   if(!box){box=document.createElement('div');box.id='incidentModal';
@@ -2226,21 +2257,21 @@ function incidentPrompt(msg,def,options){return new Promise(res=>{
 });}
 function jiraSync(id,target){const st=caseState[id];if(ticketMode!=='jira'||!st||!st.ticket||!st.ticket.url)return;
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:st.ticket.ref,action:'transition',targetStatus:target})})
-    .then(r=>r.json())
+    .then(r=>readApiJson(r,'Jira'))
     .then(data=>{
       if(data&&data.ok){st.ticket.status=data.status||target;st.log.push({t:now(),tag:'L5',txt:'Jira '+st.ticket.ref+' transitioned to '+(data.status||target)});renderCases();toast(st.ticket.ref+' → '+(data.status||target));}
       else toast('Jira transition failed'+(data&&data.error?': '+data.error:''),true);
     })
-    .catch(()=>toast('Jira unreachable — status not synced',true));}
+    .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
 async function addCaseNote(id){const st=caseState[id];if(!st)return;
   const note=await incidentPrompt('Analyst note (logged on the case'+(ticketMode==='jira'&&st.ticket&&st.ticket.url?' and commented on '+st.ticket.ref:'')+'):','');
   if(!note)return;
   st.log.push({t:now(),tag:'Analyst',txt:'Note: '+esc(note)});renderCases();
   if(ticketMode==='jira'&&st.ticket&&st.ticket.url){
     fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:st.ticket.ref,action:'comment',text:note})})
-      .then(r=>r.json())
+      .then(r=>readApiJson(r,'Jira'))
       .then(data=>{if(data&&data.ok){st.log.push({t:now(),tag:'L5',txt:'Note posted to Jira '+st.ticket.ref});renderCases();toast('Note added to case and '+st.ticket.ref);}else toast('Jira comment failed',true);})
-      .catch(()=>toast('Jira unreachable — note kept locally',true));
+      .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});
   }else toast('Note added to case');}
 function setTicketMode(m){ticketMode=m;LS&&LS.set&&LS.set('cafi_ticketmode',m);renderTicketHint();toast(m==='jira'?'Ticketing set to Jira integration':'Ticketing set to built-in case reference');}
 function jiraConn(){return connMeta.find(c=>c.key==='itsm');}
@@ -2253,7 +2284,13 @@ function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;co
     const tl=caseTimeline(c);
     const description=tl.map(x=>'['+x.tag+'] '+x.txt).join('\n')+'\n\nCreated from CAFI SecOps console.';
     fetch('/api/jira-create-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({summary,description})})
-      .then(r=>r.json().then(data=>({ok:r.ok,data})))
+      .then(async r=>{
+        if(isAuthFailure(r)){toastApiAuth('Jira');const e=new Error('auth');e.code='AUTH';throw e;}
+        const ct=(r.headers&&r.headers.get&&r.headers.get('content-type'))||'';
+        if(!r.ok&&!/application\/json/i.test(ct)){toastApiAuth('Jira');const e=new Error('auth');e.code='AUTH';throw e;}
+        const data=await r.json().catch(()=>({}));
+        return {ok:r.ok,data};
+      })
       .then(({ok,data})=>{
         if(ok&&data.key){
           st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',url:'https://cafisecops.atlassian.net/browse/'+data.key,status:'Open',t:now()};
@@ -2265,11 +2302,14 @@ function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;co
         }
         renderCases();toast(st.ticket.ref+' — '+st.ticket.system);
       })
-      .catch(()=>{
+      .catch(err=>{
+        if(err&&err.code==='AUTH')return;
         const ref='CAFI-'+(++ticketSeq);
         st.ticket={ref,system:'Jira (offline fallback)',t:now()};
         st.log.push({t:now(),tag:'L5',txt:'Jira connector unreachable · fell back to local reference '+ref});
-        renderCases();toast(st.ticket.ref+' — '+st.ticket.system);
+        renderCases();
+        if(isFileOrigin())toastApiUnavailable('Jira',err);
+        else toast(st.ticket.ref+' — '+st.ticket.system);
       });
     return;
   }
@@ -3289,6 +3329,9 @@ async function heliosLive(q){
   if(m.fmt==='anthropic'){
     const pres=await fetch('/api/helios-chat',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({key:m.key,model:m.name||'claude-sonnet-4-6',system:sys,message:q})});
+    if(isAuthFailure(pres)){toastApiAuth('Live Claude (Helios)');throw new Error('auth');}
+    const hct=(pres.headers&&pres.headers.get&&pres.headers.get('content-type'))||'';
+    if(!pres.ok&&!/application\/json/i.test(hct)){toastApiAuth('Live Claude (Helios)');throw new Error('auth');}
     if(!pres.ok)throw new Error('HTTP '+pres.status);
     const pdata=await pres.json();
     let ptxt=pdata.text;
