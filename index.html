@@ -3136,8 +3136,15 @@ function heliosBind(){
   if(sd)sd.onclick=function(){heliosSaveChat('doc');};
 }
 function heliosInit(){
+  if(helios.model&&helios.model.fmt==='anthropic'&&!heliosEntraSession()){
+    helios.model=null;
+    try{localStorage.removeItem('helios_cfg');}catch(e){}
+  }
   heliosBadge();heliosChips();
   heliosPushMsg('helios',heliosGreeting());
+  if(!heliosEntraSession()){
+    heliosPushMsg('helios','<p class="tiny" style="color:var(--ink-dim)">Local admin session: live <b>Claude</b> is not connected. Sign in with Microsoft to use the server model, or stay on the built-in analyst.</p>');
+  }
   setTimeout(function(){const i=heliosQ('#hxInput');if(i){try{i.focus();}catch(e){}}},80);
 }
 function heliosBadge(){
@@ -3186,6 +3193,7 @@ async function heliosSend(){
   const msgs=heliosQ('#hxMsgs');if(msgs)msgs.scrollTop=msgs.scrollHeight;
   helios.busy=false;if(send)send.disabled=false;
 }
+function heliosEntraSession(){return !!(AUTH&&AUTH.mode==='sso'&&AUTH.user&&AUTH.user.u);}
 const HELIOS_PROVIDERS=[
  {id:'claude',label:'Claude (Anthropic)',endpoint:'https://api.anthropic.com/v1/messages',model:'claude-sonnet-4-6',fmt:'anthropic',custom:false},
  {id:'openai',label:'OpenAI',endpoint:'https://api.openai.com/v1/chat/completions',model:'gpt-4o-mini',fmt:'openai',custom:false},
@@ -3238,13 +3246,12 @@ function heliosSaveModel(){
   if(prov.custom){const epEl=heliosQ('#hxEp');endpoint=(epEl&&epEl.value||'').trim();}
   const name=(heliosQ('#hxName').value||'').trim()||prov.model;
   if(prov.fmt==='anthropic'){
-    const entra=AUTH&&AUTH.mode==='sso'&&AUTH.user;
-    if(!entra){
+    if(!heliosEntraSession()){
       helios.model=null;
       try{localStorage.removeItem('helios_cfg');}catch(e){}
       const s=heliosQ('#hxSettings');if(s)s.remove();
       heliosBadge();
-      heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">&#9888; <b>Not connected to Claude.</b> Live Claude uses the server API and requires <b>Microsoft Entra</b> sign-in (same as Jira). You are on a local admin session — sign out and use <b>Sign in with Microsoft</b>, then Save &amp; connect again. The built-in analyst remains available offline.</p>');
+      heliosPushMsg('helios','<p class="tiny" style="color:var(--warn)">&#9888; <b>Not connected to Claude.</b> Live Claude requires <b>Microsoft Entra</b> sign-in (same as Jira). This is a <b>local admin</b> session. Sign out, use <b>Sign in with Microsoft</b>, then Save &amp; connect. Built-in analyst stays available offline.</p>');
       return;
     }
     helios.model={provider:'claude',label:prov.label,endpoint:prov.endpoint,name:name||'claude-sonnet-4-6',key:'',fmt:'anthropic',serverKey:true};
@@ -3359,6 +3366,9 @@ function heliosContext(){
 async function heliosLive(q){
   const m=helios.model, sys=heliosContext();
   if(m.fmt==='anthropic'){
+    if(!heliosEntraSession()){
+      const e=new Error('Sign in with Microsoft required');e.code='AUTH';throw e;
+    }
     const pres=await fetch('/api/helios-chat',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:m.name||'claude-sonnet-4-6',system:sys,message:q})});
     if(pres.status===401||pres.status===403){
