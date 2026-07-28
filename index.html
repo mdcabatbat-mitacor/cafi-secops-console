@@ -543,6 +543,30 @@
           </div></div>
       </div>
 
+      <!-- CAFI-LAW data feeds — auto after Entra sign-in (Item 6) -->
+      <div class="panel" style="margin-top:16px" id="lawPanel">
+        <div class="ph">
+          <h3>CAFI-LAW data feeds</h3>
+          <span class="lchip L1" title="Layer 1 — Platform foundation & data ingestion">L1</span>
+          <span class="lchip L2" title="Layer 2 — KQL context fusion & ContextualAlertScore">L2</span>
+          <span class="lchip L3" title="Layer 3 — Azure ML Isolation Forest anomaly detection">L3</span>
+          <span class="lchip L4" title="Layer 4 — SHAP explainability engine">L4</span>
+          <span class="lchip L6" title="Layer 6 — Federated training orchestrator">L6</span>
+          <span class="tag">auto after Entra · /api/law-query</span>
+          <button class="btn cyan sm" style="margin-left:10px" id="lawRefreshBtn" onclick="lawSyncAll(true)">↻ Refresh Data</button>
+        </div>
+        <div class="pb">
+          <div class="note cyan" style="margin:0 0 12px">
+            After <b>Sign in with Microsoft</b>, the console automatically pulls live and historical rows from
+            workspace <span class="mono">cafi-law</span> (custom tables + ContextualAlertScore + watchlists).
+            Historical CSVs must already be loaded into those tables (see HISTORICAL-INGEST.md).
+            Manual Upload remains available for ad-hoc offline files.
+          </div>
+          <div id="lawStatus" class="grid g2" style="gap:10px"></div>
+          <div id="lawResult" style="margin-top:12px" class="tiny muted"></div>
+        </div>
+      </div>
+
       <div class="panel" style="margin-top:16px">
         <div class="ph"><h3>Asset Inventory — Context Watchlist</h3><span class="lchip L2" title="Layer 2 — KQL context fusion & ContextualAlertScore">L2</span><button class="btn sm" style="margin-left:auto" onclick="exportAssetsCsv()">⤓ CSV</button><span class="tag" id="assetCount">0 assets</span></div>
         <div class="scroll" style="max-height:300px"><table><thead><tr><th>DeviceId</th><th>Hostname</th><th>Role</th><th>Tier</th><th>Sector</th><th>Site</th><th>Vendor</th><th>Protocol</th></tr></thead><tbody id="assetRows"></tbody></table></div>
@@ -1251,6 +1275,140 @@ function togglePoll(){
   const run=()=>evKinds.forEach(k=>fetchSource(k,api[k].ep).catch(()=>{}));
   run();pollTimer=setInterval(run,sec*1000);toast('Auto-refresh polling every '+sec+'s');
 }
+
+
+/* ========== CAFI-LAW auto-sync (Item 6) ========== */
+const LAW_FEEDS = {
+  l3: {
+    kind: 'events',
+    label: 'L3 Anomaly Scores',
+    query: 'CAFI_AnomalyScores_CL | order by TimeGenerated desc | take 500',
+    timespan: 'P30D'
+  },
+  l4: {
+    kind: 'explanations',
+    label: 'L4 Explanations',
+    query: 'CAFI_Explanations_CL | order by TimeGenerated desc | take 500',
+    timespan: 'P30D'
+  },
+  l6: {
+    kind: 'fed',
+    label: 'L6 Fed Audit',
+    query: 'CAFI_FedAudit_CL | summarize arg_max(TimeGenerated, *) by Round | order by Round asc',
+    timespan: 'P90D'
+  },
+  l2: {
+    kind: 'events',
+    label: 'L2 ContextualAlertScore',
+    query: "ContextualAlertScore | where TimeGenerated > ago(24h) | order by TimeGenerated desc | take 500",
+    timespan: 'P2D'
+  },
+  assets: {
+    kind: 'assets',
+    label: 'Asset Inventory',
+    query: "_GetWatchlist('AssetInventory') | project DeviceId=tostring(WatchlistItem.DeviceId), Hostname=tostring(WatchlistItem.Hostname), AssetRole=tostring(WatchlistItem.AssetRole), CriticalityTier=tostring(WatchlistItem.CriticalityTier), OwningSector=tostring(WatchlistItem.OwningSector), SiteCode=tostring(WatchlistItem.SiteCode), Vendor=tostring(WatchlistItem.Vendor), Protocol=tostring(WatchlistItem.Protocol)",
+    timespan: 'P1D'
+  },
+  maint: {
+    kind: 'maint',
+    label: 'Maintenance Windows',
+    query: "_GetWatchlist('MaintenanceWindows') | project WindowId=tostring(WatchlistItem.WindowId), SiteCode=tostring(WatchlistItem.SiteCode), OwningSector=tostring(WatchlistItem.OwningSector), StartTime=todatetime(WatchlistItem.StartTime), EndTime=todatetime(WatchlistItem.EndTime), WindowType=tostring(WatchlistItem.WindowType), Description=tostring(WatchlistItem.Description), ApprovedBy=tostring(WatchlistItem.ApprovedBy)",
+    timespan: 'P1D'
+  },
+  changes: {
+    kind: 'changes',
+    label: 'Context Catalogue',
+    query: "_GetWatchlist('ContextCatalogue') | project ContextId=tostring(WatchlistItem.ContextId), DeviceId=tostring(WatchlistItem.DeviceId), ChangeType=tostring(WatchlistItem.ChangeType), ChangeTimestamp=todatetime(WatchlistItem.ChangeTimestamp), ChangedBy=tostring(WatchlistItem.ChangedBy), ChangeDetail=tostring(WatchlistItem.ChangeDetail)",
+    timespan: 'P1D'
+  }
+};
+const lawState = {};
+Object.keys(LAW_FEEDS).forEach(function(k){ lawState[k] = { status: 'inactive', count: 0, ts: null, msg: '' }; });
+
+function renderLawStatus(){
+  const el = $('#lawStatus');
+  if(!el) return;
+  el.innerHTML = Object.keys(LAW_FEEDS).map(function(k){
+    const f = LAW_FEEDS[k];
+    const s = lawState[k] || {};
+    const active = s.status === 'active';
+    const loading = s.status === 'load';
+    const err = s.status === 'error';
+    const color = active ? 'var(--ok)' : (err ? 'var(--err)' : (loading ? 'var(--warn)' : '#7a8aa0'));
+    const label = active ? 'Active' : (err ? 'Error' : (loading ? 'Syncing…' : 'Inactive'));
+    const ts = s.ts ? new Date(s.ts).toISOString().replace('T',' ').slice(0,19)+'Z' : '—';
+    return '<div class="conn" style="opacity:'+(active||loading?1:0.55)+'">'+
+      '<div class="ci" style="border-color:'+color+'"><span style="width:10px;height:10px;border-radius:50%;background:'+color+';display:inline-block;box-shadow:0 0 8px '+color+'"></span></div>'+
+      '<div class="cinfo"><div class="cn">'+esc(f.label)+'</div>'+
+      '<div class="cd">'+label+(s.count!=null&&active?(' · '+s.count+' rows'):'')+(s.msg&&err?(' · '+esc(s.msg)):'')+'</div>'+
+      '<div class="tiny muted" style="margin-top:2px">Last sync: '+ts+'</div></div></div>';
+  }).join('');
+}
+
+async function lawPullOne(key){
+  const cfg = LAW_FEEDS[key];
+  if(!cfg) return 0;
+  lawState[key] = { status:'load', count:0, ts:(lawState[key]&&lawState[key].ts)||null, msg:'' };
+  renderLawStatus();
+  try{
+    const res = await fetch('/api/law-query', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query: cfg.query, timespan: cfg.timespan })
+    });
+    if(res.status===401||res.status===403){
+      toastApiAuth('CAFI-LAW');
+      lawState[key] = { status:'inactive', count:0, ts:null, msg:'Sign in required' };
+      renderLawStatus();
+      const e = new Error('auth'); e.code='AUTH'; throw e;
+    }
+    const data = await res.json().catch(function(){ return null; });
+    if(!res.ok){
+      const msg = (data && (data.error || data.message)) || ('HTTP '+res.status);
+      throw new Error(typeof msg==='string' ? msg : JSON.stringify(msg));
+    }
+    const rows = asArray(data);
+    const n = ingest(cfg.kind, rows);
+    lawState[key] = { status:'active', count:n, ts:Date.now(), msg:'' };
+    renderLawStatus();
+    return n;
+  }catch(err){
+    if(err && err.code==='AUTH') throw err;
+    lawState[key] = { status:'error', count:0, ts:(lawState[key]&&lawState[key].ts)||null, msg:String(err.message||err).slice(0,80) };
+    renderLawStatus();
+    return 0;
+  }
+}
+
+async function lawSyncAll(manual){
+  if(!(AUTH && AUTH.mode==='sso' && AUTH.user)){
+    if(manual) toastApiAuth('CAFI-LAW Refresh');
+    renderLawStatus();
+    return;
+  }
+  const el = $('#lawResult');
+  if(el) el.textContent = manual ? 'Refreshing all CAFI-LAW feeds…' : 'Loading CAFI-LAW feeds…';
+  const keys = Object.keys(LAW_FEEDS);
+  let total = 0;
+  for(let i=0;i<keys.length;i++){
+    try{ total += await lawPullOne(keys[i]); }
+    catch(e){ if(e && e.code==='AUTH') break; }
+  }
+  try{ renderAll(); }catch(e){}
+  try{ renderInfra(); }catch(e){}
+  try{ renderML(); }catch(e){}
+  try{ renderDetect(); renderHunt(); renderCases(); }catch(e){}
+  try{ renderDataStrip(); }catch(e){}
+  if(el) el.textContent = 'Sync complete · '+total+' row(s) across feeds · '+new Date().toISOString().replace('T',' ').slice(0,19)+'Z';
+  if(manual) toast('CAFI-LAW refresh complete');
+}
+
+function lawAutoSyncOnSignIn(){
+  if(AUTH && AUTH.mode==='sso' && AUTH.user){
+    setTimeout(function(){ lawSyncAll(false); }, 400);
+  }
+}
+
 
 /* =========================== RENDERING =========================== */
 function dispClass(d){return{Escalate:'c-esc',Investigate:'c-inv',Monitor:'c-mon',Suppress:'c-sup'}[d]||'src-NA';}
@@ -2584,6 +2742,7 @@ function finishLogin(){
   updateModeLine();applyRole();try{renderAccess();}catch(e){}
   try{renderDataStrip();}catch(e){}
   toast('Signed in as '+u.u+' ('+u.role+')');
+  try{lawAutoSyncOnSignIn();}catch(e){}
 }
 function doLogout(ev){
   if(ev)ev.stopPropagation();
@@ -3611,7 +3770,7 @@ function askHeliosAbout(id){
 function tick(){$('#clk').textContent=fmtT(now());}
 setInterval(tick,1000);tick();
 $('#dropHint').textContent=HINTS.events;
-renderAll();renderInfra();renderML();renderSoar();renderGovern();renderAutonomy();renderDataStrip();heliosModeBadge();authInit();
+renderAll();renderInfra();renderML();renderSoar();renderGovern();renderAutonomy();renderDataStrip();heliosModeBadge();authInit();try{renderLawStatus();}catch(e){}
 </script>
 </body>
 </html>
