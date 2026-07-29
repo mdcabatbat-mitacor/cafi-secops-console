@@ -1303,22 +1303,28 @@ const LAW_FEEDS = {
     query: "ContextualAlertScore | where TimeGenerated > ago(24h) | order by TimeGenerated desc | take 500",
     timespan: 'P2D'
   },
+  hist_events: {
+    kind: 'events',
+    label: 'Historical Events',
+    query: 'CAFI_Events_CL | order by TimeGenerated desc | take 2000',
+    timespan: 'P90D'
+  },
   assets: {
     kind: 'assets',
     label: 'Asset Inventory',
-    query: "_GetWatchlist('AssetInventory') | project DeviceId=tostring(WatchlistItem.DeviceId), Hostname=tostring(WatchlistItem.Hostname), AssetRole=tostring(WatchlistItem.AssetRole), CriticalityTier=tostring(WatchlistItem.CriticalityTier), OwningSector=tostring(WatchlistItem.OwningSector), SiteCode=tostring(WatchlistItem.SiteCode), Vendor=tostring(WatchlistItem.Vendor), Protocol=tostring(WatchlistItem.Protocol)",
+    query: "_GetWatchlist('AssetInventory') | project DeviceId=tostring(DeviceId), Hostname=tostring(Hostname), AssetRole=tostring(AssetRole), CriticalityTier=tostring(CriticalityTier), OwningSector=tostring(OwningSector), SiteCode=tostring(SiteCode), Vendor=tostring(Vendor), Protocol=tostring(Protocol)",
     timespan: 'P1D'
   },
   maint: {
     kind: 'maint',
     label: 'Maintenance Windows',
-    query: "_GetWatchlist('MaintenanceWindows') | project WindowId=tostring(WatchlistItem.WindowId), SiteCode=tostring(WatchlistItem.SiteCode), OwningSector=tostring(WatchlistItem.OwningSector), StartTime=todatetime(WatchlistItem.StartTime), EndTime=todatetime(WatchlistItem.EndTime), WindowType=tostring(WatchlistItem.WindowType), Description=tostring(WatchlistItem.Description), ApprovedBy=tostring(WatchlistItem.ApprovedBy)",
+    query: "_GetWatchlist('MaintenanceWindows') | project WindowId=tostring(WindowId), SiteCode=tostring(SiteCode), OwningSector=tostring(OwningSector), StartTime=todatetime(StartTime), EndTime=todatetime(EndTime), WindowType=tostring(WindowType), Description=tostring(Description), ApprovedBy=tostring(ApprovedBy)",
     timespan: 'P1D'
   },
   changes: {
     kind: 'changes',
     label: 'Context Catalogue',
-    query: "_GetWatchlist('ContextCatalogue') | project ContextId=tostring(WatchlistItem.ContextId), DeviceId=tostring(WatchlistItem.DeviceId), ChangeType=tostring(WatchlistItem.ChangeType), ChangeTimestamp=todatetime(WatchlistItem.ChangeTimestamp), ChangedBy=tostring(WatchlistItem.ChangedBy), ChangeDetail=tostring(WatchlistItem.ChangeDetail)",
+    query: "_GetWatchlist('ContextCatalogue') | project ContextId=tostring(ContextId), DeviceId=tostring(DeviceId), ChangeType=tostring(ChangeType), ChangeTimestamp=todatetime(ChangeTimestamp), ChangedBy=tostring(ChangedBy), ChangeDetail=tostring(ChangeDetail)",
     timespan: 'P1D'
   }
 };
