@@ -1326,6 +1326,24 @@ const LAW_FEEDS = {
     label: 'Context Catalogue',
     query: "_GetWatchlist('ContextCatalogue') | project ContextId=tostring(ContextId), DeviceId=tostring(DeviceId), ChangeType=tostring(ChangeType), ChangeTimestamp=todatetime(ChangeTimestamp), ChangedBy=tostring(ChangedBy), ChangeDetail=tostring(ChangeDetail)",
     timespan: 'P1D'
+  },
+  aiusage: {
+    kind: 'aiusage',
+    label: 'AI Usage',
+    query: 'CAFI_AIUsage_CL | order by TimeGenerated desc | take 500',
+    timespan: 'P90D'
+  },
+  aitools: {
+    kind: 'aitools',
+    label: 'Approved AI Tools',
+    query: "_GetWatchlist('ApprovedAITools') | project AITool=tostring(AITool), Vendor=tostring(Vendor), Status=tostring(Status), Endpoint=tostring(Endpoint), Notes=tostring(Notes)",
+    timespan: 'P1D'
+  },
+  aiendpoints: {
+    kind: 'aiendpoints',
+    label: 'Controlled AI Endpoints',
+    query: "_GetWatchlist('ControlledAIEndpoints') | project Endpoint=tostring(Endpoint), Type=tostring(Type), Controlled=tostring(Controlled), Gateway=tostring(Gateway)",
+    timespan: 'P1D'
   }
 };
 const lawState = {};
