@@ -622,7 +622,7 @@
     <section class="view" id="view-hunt">
       <div class="note">Hybrid hunting on a <b>continuous cadence</b>. Every hypothesis follows a documented methodology (hypothesis → data source → analytic → MITRE-mapped finding) and runs as a real query over the loaded event and AI-usage data. Hunts auto-run when data is present and can be re-run at any time — this session's cadence is tracked below.</div>
       <div class="grid g4" id="huntKpis"></div>
-      <div class="panel" style="margin-top:16px"><div class="ph"><h3>Hypothesis Library &amp; Hunt Runs</h3><span class="lchip L3" title="Layer 3">L3</span><span class="lchip L4" title="Layer 4">L4</span><button class="btn sm" style="margin-left:auto" onclick="runAllHunts(false)">▶ Run all hunts</button></div>
+      <div class="panel" style="margin-top:16px"><div class="ph"><h3>Hypothesis Library &amp; Hunt Runs</h3><span class="lchip L3" title="Layer 3">L3</span><span class="lchip L4" title="Layer 4">L4</span><button class="btn sm" id="huntAllBtn" style="margin-left:auto" onclick="runAllHunts(false)">▶ Run all hunts</button></div>
         <div class="scroll" style="max-height:420px"><table><thead><tr><th>Hypothesis</th><th>MITRE</th><th>Data source</th><th>Last run</th><th>Findings</th><th></th></tr></thead><tbody id="huntRows"></tbody></table></div></div>
       <div class="panel" style="margin-top:16px"><div class="ph"><h3>Hunt Activity Log</h3><span class="tag">documented methodology per run</span></div>
         <div class="scroll" style="max-height:240px"><table><thead><tr><th>Time</th><th>Trigger</th><th>Hypothesis</th><th>Outcome</th></tr></thead><tbody id="huntLogRows"></tbody></table></div></div>
@@ -1550,19 +1550,37 @@ function renderOnboard(){
 }
 function renderVol(){
   if(!EVENTS.length){$('#volChart').innerHTML=emptyBox('▤','No events yet — load watchlists and events under Data Sources to populate the stream.',CTA_LOAD);return;}
-  const W=720,H=210,p=26,buckets=24;
+  /* Grouped bar chart: each disposition stream gets its OWN bar per time bucket
+     (previously all four were stacked into a single bar). Both axes are labelled:
+     Y = event count with gridline values, X = bucket start times in UTC. */
+  const W=720,H=240,pL=44,pR=14,pT=16,pB=40,buckets=12;
   const arr=Array.from({length:buckets},()=>({Escalate:0,Investigate:0,Monitor:0,Suppress:0}));
   /* EVENTS is not sorted — every LAW_FEEDS query uses 'order by TimeGenerated desc', so
-     taking first/last as the range gave a negative span and collapsed every event into
-     bucket 0. Derive the window from the actual min/max instead. */
+     first/last as the range gave a negative span; derive the window from min/max. */
   const _tv=EVENTS.map(e=>e.t.getTime());
-  const t0=Math.min.apply(null,_tv),span=Math.max(1,Math.max.apply(null,_tv)-t0);
-  EVENTS.forEach(e=>{let i=Math.floor((e.t.getTime()-t0)/span*(buckets-1));i=Math.max(0,Math.min(buckets-1,i));if(arr[i][e.Disposition]!=null)arr[i][e.Disposition]++;});
-  const max=Math.max(1,...arr.map(b=>b.Escalate+b.Investigate+b.Monitor+b.Suppress));
-  const bw=(W-p*2)/buckets,col={Escalate:'var(--esc)',Investigate:'var(--inv)',Monitor:'var(--mon)',Suppress:'var(--sup)'};
-  let bars='';arr.forEach((b,i)=>{let y=H-p;const x=p+i*bw+2;['Suppress','Monitor','Investigate','Escalate'].forEach(k=>{const h=b[k]/max*(H-p*2);if(h>0){y-=h;bars+=`<rect x="${x}" y="${y}" width="${bw-4}" height="${h}" rx="2" fill="${col[k]}" opacity=".9"/>`;}});});
-  let grid='';for(let g=0;g<=4;g++){const y=p+g*((H-p*2)/4);grid+=`<line x1="${p}" y1="${y}" x2="${W-p}" y2="${y}" stroke="var(--line)"/><text x="6" y="${y+4}" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">${Math.round(max-(max/4)*g)}</text>`;}
-  $('#volChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${bars}</svg>`;
+  const t0=Math.min.apply(null,_tv),t1=Math.max.apply(null,_tv),span=Math.max(1,t1-t0);
+  EVENTS.forEach(e=>{let i=Math.floor((e.t.getTime()-t0)/span*buckets);i=Math.max(0,Math.min(buckets-1,i));if(arr[i][e.Disposition]!=null)arr[i][e.Disposition]++;});
+  const DISPS=['Escalate','Investigate','Monitor','Suppress'];
+  const col={Escalate:'var(--esc)',Investigate:'var(--inv)',Monitor:'var(--mon)',Suppress:'var(--sup)'};
+  // grouped scale: tallest single stream in any bucket, not the stacked sum
+  const max=Math.max(1,...arr.flatMap(b=>DISPS.map(k=>b[k])));
+  const plotW=W-pL-pR,plotH=H-pT-pB,gw=plotW/buckets,bw=Math.max(2,(gw-8)/DISPS.length);
+  const Y=v=>pT+plotH-(v/max)*plotH;
+  let bars='';
+  arr.forEach((b,i)=>{const gx=pL+i*gw+4;
+    DISPS.forEach((k,j)=>{const h=(b[k]/max)*plotH;if(h>0)bars+=`<rect x="${gx+j*bw}" y="${Y(b[k])}" width="${bw-1}" height="${h}" rx="1.5" fill="${col[k]}" opacity=".92"><title>${k}: ${b[k]}</title></rect>`;});});
+  // Y axis: gridlines + counts + axis title
+  let grid='';const ySteps=4;
+  for(let g=0;g<=ySteps;g++){const v=Math.round(max-(max/ySteps)*g),y=pT+g*(plotH/ySteps);
+    grid+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="var(--line)"/><text x="${pL-6}" y="${y+3}" text-anchor="end" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">${v}</text>`;}
+  grid+=`<text x="12" y="${pT+plotH/2}" fill="var(--ink-faint)" font-size="9.5" font-weight="600" transform="rotate(-90 12 ${pT+plotH/2})" text-anchor="middle">Event count</text>`;
+  // X axis: bucket-start time labels (UTC); date+time when the window spans multiple days
+  const multiDay=span>36*3600*1000;
+  const fmtTick=ms=>{const d=new Date(ms);const hm=String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');return multiDay?((d.getUTCMonth()+1)+'/'+d.getUTCDate()+' '+hm):hm;};
+  let xl='';const every=Math.ceil(buckets/6);
+  for(let i=0;i<buckets;i+=every){const bx=pL+i*gw+gw/2;xl+=`<line x1="${bx}" y1="${pT+plotH}" x2="${bx}" y2="${pT+plotH+4}" stroke="var(--line2)"/><text x="${bx}" y="${H-pB+16}" text-anchor="middle" fill="var(--ink-faint)" font-size="8.5" font-family="IBM Plex Mono">${fmtTick(t0+(i/buckets)*span)}</text>`;}
+  xl+=`<text x="${pL+plotW/2}" y="${H-4}" text-anchor="middle" fill="var(--ink-faint)" font-size="9.5" font-weight="600">Time (UTC) · ${buckets} buckets across the loaded window</text>`;
+  $('#volChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${xl}${bars}</svg>`;
 }
 function renderDonut(){
   if(!EVENTS.length){$('#dispDonut').innerHTML=emptyBox('◔','No dispositions yet — load events to see the ContextualAlertScore mix.',CTA_LOAD);$('#dispLegend').innerHTML='';return;}
@@ -2169,7 +2187,31 @@ const SENSITIVE_CLASS=['confidential','restricted','pii','customerdata','custome
    anchored, so 'Unsanctioned' and 'Unapproved' correctly fail to match. */
 const AI_STATUS_OK=/^\s*(appro|sanction|allow|permit)/i;
 function aiStatusApproved(v){return AI_STATUS_OK.test(String(v||''));}
-function aiToolApproved(name){const t=aiTools.find(x=>eqi(x.AITool,name));return t?aiStatusApproved(t.Status):false;}
+/* Tool-name matching must survive naming drift between the allow-list and the usage
+   feed — the same product arrives as "Microsoft 365 Copilot" (watchlist), "Microsoft
+   Copilot" (usage telemetry), "M365 Copilot", or "Copilot (Microsoft)". Exact matching
+   flagged approved Copilot usage as shadow AI. normAITool() strips parentheticals,
+   edition tokens (365 / M365 / public) and vendor prefixes, then aiToolMatch() accepts
+   an exact normalized match OR a vendor-qualified variant of the same product name.
+   Distinct products stay distinct: "github copilot" never equals "microsoft copilot",
+   and "chatgpt" never matches "azure openai". */
+function normAITool(name){
+  return String(name||'').toLowerCase()
+    .replace(/\([^)]*\)/g,' ')            // drop parentheticals: "(public)", "(Anthropic)"
+    .replace(/\b(m?365|public|enterprise|cloud|the)\b/g,' ') // edition/noise tokens
+    .replace(/[^a-z0-9 ]+/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function aiToolMatch(a,b){
+  const na=normAITool(a),nb=normAITool(b);
+  if(!na||!nb)return false;
+  if(na===nb)return true;
+  // vendor-prefix tolerance: "copilot" vs "microsoft copilot" is the same product
+  // when the shorter name is the full product part of the longer one.
+  const [sh,lo]=na.length<=nb.length?[na,nb]:[nb,na];
+  return lo===sh?true:(lo.endsWith(' '+sh)&&lo.split(' ').length-sh.split(' ').length===1);
+}
+function aiToolApproved(name){const t=aiTools.find(x=>eqi(x.AITool,name)||aiToolMatch(x.AITool,name));return t?aiStatusApproved(t.Status):false;}
 function aiEndpointControlled(ep){
   if(!ep)return false;
   /* If the endpoint is registered, the registry decides — including when it says No.
@@ -2340,18 +2382,52 @@ function runHunt(i,auto){const h=HUNTS[i];const pool=h.ai?aiUsage:EVENTS;const h
   h.lastRun=now();h.findings=hits.length;h.sample=hits.slice(0,3).map(x=>h.ai?((x.UserId||'')+' → '+(x.AITool||'')):(x.DeviceRef||''));
   huntLog.unshift({t:now(),trig:auto?'Scheduled (continuous cadence)':'Analyst',hyp:h.id+' · '+h.n,out:hits.length?hits.length+' finding'+(hits.length>1?'s':'')+' — MITRE '+h.m.join(', '):'No findings — hypothesis not supported by current data'});
   if(huntLog.length>200)huntLog=huntLog.slice(0,200);}
-function runAllHunts(auto){if(!EVENTS.length&&!aiUsage.length)return toast('Load data first — hunts query the loaded events',true);HUNTS.forEach((h,i)=>runHunt(i,auto));renderHunt();if(!auto)toast('All hypotheses executed — findings MITRE-mapped');}
+/* Manual hunt execution with a visible Running state.
+   The underlying analytic (runHunt) completes in microseconds against in-memory data,
+   so a raw call would flash straight to results with no chance to stop it. startHunt
+   gives each manual run a short in-progress window (~2.5s) during which the row shows
+   a green Running chip and a Stop control; Stop cancels the pending execution and the
+   row reverts to its prior state (Waiting to run, or the previous findings). The
+   silent scheduled cadence still uses runHunt directly and is unaffected. */
+function startHunt(i){
+  const h=HUNTS[i];if(!h||h.running)return;
+  if(!EVENTS.length&&!aiUsage.length)return toast('Load data first — hunts query the loaded events',true);
+  h.running=true;renderHunt();
+  h._timer=setTimeout(function(){
+    h._timer=null;h.running=false;
+    runHunt(i,false);
+    renderHunt();
+  },2500);
+}
+function stopHunt(i){
+  const h=HUNTS[i];if(!h||!h.running)return;
+  if(h._timer){clearTimeout(h._timer);h._timer=null;}
+  h.running=false;
+  huntLog.unshift({t:now(),trig:'Analyst',hyp:h.id+' · '+h.n,out:'Stopped before completion — no results recorded'});
+  renderHunt();toast(h.id+' stopped');
+}
+function stopAllHunts(){HUNTS.forEach((h,i)=>{if(h.running)stopHunt(i);});}
+function runAllHunts(auto){
+  if(!EVENTS.length&&!aiUsage.length)return toast('Load data first — hunts query the loaded events',true);
+  if(auto){HUNTS.forEach((h,i)=>runHunt(i,auto));renderHunt();return;}
+  if(HUNTS.some(h=>h.running)){stopAllHunts();return;}
+  HUNTS.forEach((h,i)=>startHunt(i));
+  toast('All hypotheses running…');
+}
 function renderHunt(){
   if(!$('#huntKpis'))return;
   if((EVENTS.length||aiUsage.length)&&!huntLog.length)HUNTS.forEach((h,i)=>runHunt(i,true));
   const runs=huntLog.length,find=HUNTS.reduce((a,h)=>a+(h.findings||0),0);
+  const anyRunning=HUNTS.some(h=>h.running);
+  const allBtn=$('#huntAllBtn');
+  if(allBtn){allBtn.innerHTML=anyRunning?'■ Stop all':'▶ Run all hunts';allBtn.style.borderColor=anyRunning?'var(--esc)':'';allBtn.style.color=anyRunning?'#ff97a3':'';}
   $('#huntKpis').innerHTML=[
     {lbl:'Hypotheses in library',num:HUNTS.length,bar:'var(--cyan)'},
     {lbl:'Hunt runs (session)',num:runs,bar:'var(--brand)'},
     {lbl:'MITRE-mapped findings',num:find,bar:find?'var(--inv)':'var(--sup)'},
     {lbl:'Cadence',num:runs?'Continuous':'Idle',bar:runs?'var(--sup)':'var(--esc)'},
   ].map(k=>`<div class="panel kpi"><span class="bar" style="background:${k.bar}"></span><div class="pb"><div class="lbl">${k.lbl}</div><div class="num">${k.num}</div></div></div>`).join('');
-  $('#huntRows').innerHTML=HUNTS.map((h,i)=>`<tr><td><div>${esc(h.n)}</div><div class="mono tiny muted">${h.id} · hypothesis → data → analytic → finding</div></td><td class="mono tiny">${h.m.join('<br>')}</td><td class="tiny">${esc(h.src)}</td><td class="mono tiny muted">${h.lastRun?fmtT(h.lastRun):'—'}</td><td>${h.lastRun?(h.findings?`<span class="chip c-inv">${h.findings} finding${h.findings>1?'s':''}</span><div class="tiny muted">${(h.sample||[]).map(esc).join(', ')}</div>`:'<span class="chip c-sup">clear</span>'):'<span class="muted tiny">not run</span>'}</td><td><button class="btn sm" onclick="runHunt(${i},false);renderHunt()">▶ Run</button></td></tr>`).join('');
+  $('#huntRows').innerHTML=HUNTS.map((h,i)=>`<tr><td><div>${esc(h.n)}</div><div class="mono tiny muted">${h.id} · hypothesis → data → analytic → finding</div></td><td class="mono tiny">${h.m.join('<br>')}</td><td class="tiny">${esc(h.src)}</td><td class="mono tiny muted">${h.lastRun?fmtT(h.lastRun):'—'}</td><td>${h.running?'<span class="chip" style="background:rgba(79,178,134,.18);color:#7fe0b2;border:1px solid var(--ok)"><span class="dot pulse" style="background:var(--ok);width:7px;height:7px;margin-right:5px"></span>Running…</span>':(h.lastRun?(h.findings?`<span class="chip c-inv">${h.findings} finding${h.findings>1?'s':''}</span><div class="tiny muted">${(h.sample||[]).map(esc).join(', ')}</div>`:'<span class="chip c-sup">clear</span>'):'<span class="muted tiny">Waiting to run</span>')}</td><td>${h.running?`<button class="btn sm" style="border-color:var(--esc);color:#ff97a3" onclick="stopHunt(${i})">■ Stop</button>`:`<button class="btn sm" onclick="startHunt(${i})">▶ Run</button>`}</td></tr>`).join('');
   $('#huntLogRows').innerHTML=huntLog.length?huntLog.map(l=>`<tr><td class="mono tiny muted">${fmtT(l.t)}</td><td class="tiny">${esc(l.trig)}</td><td class="tiny">${esc(l.hyp)}</td><td class="tiny">${esc(l.out)}</td></tr>`).join(''):'<tr><td colspan="4">'+emptyBox('◎','No hunts run yet. Load data — hunts auto-run on a continuous cadence, or run any hypothesis manually.')+'</td></tr>';
 }
 function exportHuntCsv(){if(!huntLog.length)return toast('No hunt runs yet',true);const h=['Time','Trigger','Hypothesis','MITRE','Findings','Outcome'];downloadBlob('CAFI_HuntFindings_'+stamp()+'.csv',toCsv(h,HUNTS.map(x=>[x.lastRun?x.lastRun.toISOString():'',x.lastRun?'run':'never','('+x.id+') '+x.n,x.m.join(' | '),x.findings||0,(x.findings?'Findings — review recommended':'Clear')])),'text/csv');toast('Hunt findings report exported');}
@@ -2468,7 +2544,16 @@ function renderCaseDetail(){
   const tl=caseTimeline(c);
   const tk=c.st.ticket;
   const assignee=(tk&&tk.assignee)||c.st.assignee;
-  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> <span class="chip ${c.st.status==='Open'?'c-inv':(/^closed/i.test(c.st.status)?'c-sup':'c-mon')}">${esc(c.st.status)}</span>${tk?(tk.url?` <a class="chip c-mon" href="${tk.url}" target="_blank" rel="noopener" title="${esc(tk.system)} — open in Jira">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</a>`:` <span class="chip c-mon" title="${esc(tk.system)}">${esc(tk.ref)}</span>`):''}${assignee?` <span class="chip c-mon" title="Assignee">👤 ${esc(assignee)}</span>`:''}</div></div>
+  /* One status chip only. Un-ticketed case: the local status chip. Ticketed case: the
+     Jira chip (key + live Jira status, opens the issue) replaces the local Current
+     Status silently — Jira is the single source of truth from creation onward. */
+  const _stStatus=(tk&&tk.status)||c.st.status;
+  const _stCls=_stStatus==='Open'?'c-inv':(/^closed|resolved|done/i.test(_stStatus||'')?'c-sup':'c-mon');
+  const statusChip=tk
+    ?(tk.url?`<a class="chip ${_stCls}" href="${tk.url}" target="_blank" rel="noopener" title="${esc(tk.system)} — status lives in Jira; click to open">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</a>`
+            :`<span class="chip ${_stCls}" title="${esc(tk.system)}">${esc(tk.ref)}${tk.status?' · '+esc(tk.status):''}</span>`)
+    :`<span class="chip ${_stCls}">${esc(c.st.status)}</span>`;
+  el.innerHTML=`<div class="row between" style="margin-bottom:10px"><div><span class="mono">${c.id}</span> · <b>${esc(c.e.DeviceRef)}</b> <span class="chip c-${c.e.Disposition==='Escalate'?'esc':'inv'}">${c.e.Disposition}</span> ${statusChip}${assignee?` <span class="chip c-mon" title="Assignee">👤 ${esc(assignee)}</span>`:''}</div></div>
   <div class="feed" style="max-height:280px;overflow:auto">${tl.map(x=>`<div class="row" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:flex-start"><span class="lchip ${/^L\d/.test(x.tag)?x.tag:'L5'}" style="flex:none">${x.tag}</span><div><div class="tiny">${x.txt}</div><div class="tiny muted mono">${fmtT(x.t)}</div></div></div>`).join('')}</div>
   <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
     <button class="btn sm" onclick="overrideCase('${c.id}')">✎ Override disposition</button>
@@ -2534,6 +2619,11 @@ function applyJiraPull(st,data,keyFallback){
   st.ticket.t=now();
   if(!prevStatus)st.log.push({t:now(),tag:'Jira',txt:'Linked Jira issue '+key+' \u00b7 status '+st.ticket.status});
   else if(data.status!=null&&prevStatus!==data.status)st.log.push({t:now(),tag:'Jira',txt:'Jira status updated: '+prevStatus+' \u2192 '+data.status});
+  /* Single source of truth: once a case is ticketed, the Jira status IS the case
+     status. Adopt it silently (no extra log line - the status-change line above
+     already records the transition) so the queue, filters and KPIs stay aligned
+     with Jira rather than drifting on a stale local value. */
+  if(data.status!=null)st.status=data.status;
   mergeJiraExtras(st,data);
   return st.ticket;
 }
@@ -2616,7 +2706,8 @@ function jiraTicketTransition(key){
           .then(function(d){
             if(d&&d.ok){
               const tk=jiraTickets.find(t=>t.key===key);if(tk)tk.status=d.status||target;
-              if(!caseState[key])caseState[key]={status:target,log:[]};
+              if(!caseState[key])caseState[key]={status:d.status||target,log:[]};
+              caseState[key].status=d.status||target;
               caseState[key].log.push({t:now(),tag:'L5',txt:'Jira '+key+' transitioned to '+(d.status||target)});
               renderCases();toast(key+' → '+(d.status||target));
             }else toast('Jira transition failed',true);
@@ -2723,7 +2814,7 @@ function jiraSync(id,target){const st=caseState[id];if(ticketMode!=='jira'||!st|
   fetch('/api/jira-update-issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:st.ticket.ref,action:'transition',targetStatus:target})})
     .then(r=>readApiJson(r,'Jira'))
     .then(data=>{
-      if(data&&data.ok){st.ticket.status=data.status||target;st.log.push({t:now(),tag:'L5',txt:'Jira '+st.ticket.ref+' transitioned to '+(data.status||target)});mergeJiraExtras(st,data);renderCases();toast(st.ticket.ref+' → '+(data.status||target));}
+      if(data&&data.ok){st.ticket.status=data.status||target;st.status=st.ticket.status;st.log.push({t:now(),tag:'L5',txt:'Jira '+st.ticket.ref+' transitioned to '+st.ticket.status});mergeJiraExtras(st,data);renderCases();toast(st.ticket.ref+' → '+st.ticket.status);}
       else toast('Jira transition failed'+(data&&data.error?': '+data.error:''),true);
     })
     .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
@@ -2758,6 +2849,10 @@ function raiseTicket(id){const c=buildCases().find(x=>x.id===id);if(!c)return;co
       .then(({ok,data})=>{
         if(ok&&data.key){
           st.ticket={ref:data.key,system:'Jira (cafisecops.atlassian.net)',url:'https://cafisecops.atlassian.net/browse/'+data.key,status:'Open',t:now(),_seenComments:{}};
+          /* From this point the Jira status replaces the local Current Status —
+             silently, per design: no "status changed" log entry, the chip in the
+             Evidence Timeline simply becomes the Jira status chip. */
+          st.status=st.ticket.status;
           st.log.push({t:now(),tag:'L5',txt:'Jira issue '+data.key+' created via connector · live'});
           // Keep jiraTickets in sync so the case queue reflects the new ticket without a manual Jira Sync
           const entry={key:data.key,summary:summary,status:'Open',url:st.ticket.url,caseId:c.id,device:c.e.DeviceRef};
