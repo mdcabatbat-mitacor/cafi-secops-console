@@ -2448,32 +2448,42 @@ const HUNTS=[
  {id:'H-05',n:'Activity from assets missing in the inventory (shadow infrastructure)',m:['T1078'],src:'Events + AssetInventory',q:e=>e.ContextStatus==='UnknownAsset'},
  {id:'H-06',n:'Sensitive-data exfiltration attempts through AI channels (shadow AI)',m:['T1567'],src:'AI usage (CASB/DLP)',ai:true,q:u=>{const r=evalAIUsage(u);return r.verdict==='Blocked'&&r.sensitive;}},
 ];
-function runHunt(i,auto){const h=HUNTS[i];const pool=h.ai?aiUsage:EVENTS;const hits=pool.filter(h.q);
+/* suppressIfUnchanged: the dedup check MUST happen after computing fresh hits, not
+   before — comparing the pre-run count would suppress the very tick that first
+   detects a real change (it compares against the stale value from the prior tick,
+   not the value this run just produced). */
+function runHunt(i,auto,suppressIfUnchanged){const h=HUNTS[i];const pool=h.ai?aiUsage:EVENTS;const hits=pool.filter(h.q);
   h.lastRun=now();h.findings=hits.length;h.sample=hits.slice(0,3).map(x=>h.ai?((x.UserId||'')+' → '+(x.AITool||'')):(x.DeviceRef||''));
-  huntLog.unshift({t:now(),trig:auto?'Scheduled (continuous cadence)':'Analyst',hyp:h.id+' · '+h.n,out:hits.length?hits.length+' finding'+(hits.length>1?'s':'')+' — MITRE '+h.m.join(', '):'No findings — hypothesis not supported by current data'});
-  if(huntLog.length>200)huntLog=huntLog.slice(0,200);}
-/* Manual hunt execution with a visible Running state.
-   The underlying analytic (runHunt) completes in microseconds against in-memory data,
-   so a raw call would flash straight to results with no chance to stop it. startHunt
-   gives each manual run a short in-progress window (~2.5s) during which the row shows
-   a green Running chip and a Stop control; Stop cancels the pending execution and the
-   row reverts to its prior state (Waiting to run, or the previous findings). The
-   silent scheduled cadence still uses runHunt directly and is unaffected. */
+  const changed=h._lastLoggedFindings==null||h._lastLoggedFindings!==h.findings;
+  if(!suppressIfUnchanged||changed){
+    huntLog.unshift({t:now(),trig:auto?'Scheduled (continuous cadence)':'Analyst',hyp:h.id+' · '+h.n,out:hits.length?hits.length+' finding'+(hits.length>1?'s':'')+' — MITRE '+h.m.join(', '):'No findings — hypothesis not supported by current data'});
+    if(huntLog.length>200)huntLog=huntLog.slice(0,200);
+    h._lastLoggedFindings=h.findings;
+  }
+}
+/* Manual hunt execution with a genuine, indefinite Running state (no auto-timer -
+   a previous version faked a 2.5s "processing" delay and then auto-completed on its
+   own, which looked like Stop was firing itself with no user action. That's gone.
+   startHunt now runs the hypothesis immediately for instant feedback, then keeps
+   re-evaluating it against the current data every 8s for as long as it's running -
+   this is what "continuous hypothesis-driven hunting" means for a manual run, same
+   idea as the scheduled cadence but visible and analyst-controlled. It only stops
+   when stopHunt is called; there is no other exit. A log entry is written on the
+   first run and again only when the finding count actually changes, so a long-running
+   hunt against static data doesn't spam identical entries every tick. */
+const HUNT_POLL_MS=8000;
 function startHunt(i){
   const h=HUNTS[i];if(!h||h.running)return;
   if(!EVENTS.length&&!aiUsage.length)return toast('Load data first — hunts query the loaded events',true);
-  h.running=true;renderHunt();
-  h._timer=setTimeout(function(){
-    h._timer=null;h.running=false;
-    runHunt(i,false);
-    renderHunt();
-  },2500);
+  h.running=true;
+  runHunt(i,false,false);renderHunt(); // first execution always logs, even if it finds nothing
+  h._timer=setInterval(function(){runHunt(i,false,true);renderHunt();},HUNT_POLL_MS); // later ticks log only on an actual change
 }
 function stopHunt(i){
   const h=HUNTS[i];if(!h||!h.running)return;
-  if(h._timer){clearTimeout(h._timer);h._timer=null;}
+  if(h._timer){clearInterval(h._timer);h._timer=null;}
   h.running=false;
-  huntLog.unshift({t:now(),trig:'Analyst',hyp:h.id+' · '+h.n,out:'Stopped before completion — no results recorded'});
+  huntLog.unshift({t:now(),trig:'Analyst',hyp:h.id+' · '+h.n,out:'Stopped by analyst — last result: '+(h.findings?h.findings+' finding'+(h.findings>1?'s':''):'clear')});
   renderHunt();toast(h.id+' stopped');
 }
 function stopAllHunts(){HUNTS.forEach((h,i)=>{if(h.running)stopHunt(i);});}
@@ -2497,7 +2507,7 @@ function renderHunt(){
     {lbl:'MITRE-mapped findings',num:find,bar:find?'var(--inv)':'var(--sup)'},
     {lbl:'Cadence',num:runs?'Continuous':'Idle',bar:runs?'var(--sup)':'var(--esc)'},
   ].map(k=>`<div class="panel kpi"><span class="bar" style="background:${k.bar}"></span><div class="pb"><div class="lbl">${k.lbl}</div><div class="num">${k.num}</div></div></div>`).join('');
-  $('#huntRows').innerHTML=HUNTS.map((h,i)=>`<tr><td><div>${esc(h.n)}</div><div class="mono tiny muted">${h.id} · hypothesis → data → analytic → finding</div></td><td class="mono tiny">${h.m.join('<br>')}</td><td class="tiny">${esc(h.src)}</td><td class="mono tiny muted">${h.lastRun?fmtT(h.lastRun):'—'}</td><td>${h.running?'<span class="chip" style="background:rgba(79,178,134,.18);color:#7fe0b2;border:1px solid var(--ok)"><span class="dot pulse" style="background:var(--ok);width:7px;height:7px;margin-right:5px"></span>Running…</span>':(h.lastRun?(h.findings?`<span class="chip c-inv">${h.findings} finding${h.findings>1?'s':''}</span><div class="tiny muted">${(h.sample||[]).map(esc).join(', ')}</div>`:'<span class="chip c-sup">clear</span>'):'<span class="muted tiny">Waiting to run</span>')}</td><td>${h.running?`<button class="btn sm" style="border-color:var(--esc);color:#ff97a3" onclick="stopHunt(${i})">■ Stop</button>`:`<button class="btn sm" onclick="startHunt(${i})">▶ Run</button>`}</td></tr>`).join('');
+  $('#huntRows').innerHTML=HUNTS.map((h,i)=>`<tr><td><div>${esc(h.n)}</div><div class="mono tiny muted">${h.id} · hypothesis → data → analytic → finding</div></td><td class="mono tiny">${h.m.join('<br>')}</td><td class="tiny">${esc(h.src)}</td><td class="mono tiny muted">${h.lastRun?fmtT(h.lastRun):'—'}</td><td>${h.running?'<span class="chip" style="background:rgba(79,178,134,.18);color:#7fe0b2;border:1px solid var(--ok)"><span class="dot pulse" style="background:var(--ok);width:7px;height:7px;margin-right:5px"></span>Running… '+(h.findings||0)+' so far</span>':(h.lastRun?(h.findings?`<span class="chip c-inv">${h.findings} finding${h.findings>1?'s':''}</span><div class="tiny muted">${(h.sample||[]).map(esc).join(', ')}</div>`:'<span class="chip c-sup">clear</span>'):'<span class="muted tiny">Waiting to run</span>')}</td><td>${h.running?`<button class="btn sm" style="border-color:var(--esc);color:#ff97a3" onclick="stopHunt(${i})">■ Stop</button>`:`<button class="btn sm" onclick="startHunt(${i})">▶ Run</button>`}</td></tr>`).join('');
   $('#huntLogRows').innerHTML=huntLog.length?huntLog.map(l=>`<tr><td class="mono tiny muted">${fmtT(l.t)}</td><td class="tiny">${esc(l.trig)}</td><td class="tiny">${esc(l.hyp)}</td><td class="tiny">${esc(l.out)}</td></tr>`).join(''):'<tr><td colspan="4">'+emptyBox('◎','No hunts run yet. Load data — hunts auto-run on a continuous cadence, or run any hypothesis manually.')+'</td></tr>';
 }
 function exportHuntCsv(){if(!huntLog.length)return toast('No hunt runs yet',true);const h=['Time','Trigger','Hypothesis','MITRE','Findings','Outcome'];downloadBlob('CAFI_HuntFindings_'+stamp()+'.csv',toCsv(h,HUNTS.map(x=>[x.lastRun?x.lastRun.toISOString():'',x.lastRun?'run':'never','('+x.id+') '+x.n,x.m.join(' | '),x.findings||0,(x.findings?'Findings — review recommended':'Clear')])),'text/csv');toast('Hunt findings report exported');}
