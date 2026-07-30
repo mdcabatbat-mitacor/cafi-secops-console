@@ -526,6 +526,7 @@
                 <option value="maint">MaintenanceWindows watchlist</option>
                 <option value="changes">ContextCatalogue watchlist</option>
                 <option value="explanations">CAFI_Explanations_CL export</option>
+                <option value="anomaly">CAFI_AnomalyScores_CL export (L3)</option>
                 <option value="fed">fed-audit export</option>
                 <option value="aiusage">AI usage feed (CASB / DLP)</option>
                 <option value="aitools">Approved AI Tools allow-list</option>
@@ -649,7 +650,7 @@
 
     <!-- AUTONOMY & GUARDRAILS -->
     <section class="view" id="view-autonomy">
-      <div class="note">Where automation is allowed to act, and where it must stop. The console operates at <b>AM Level 2 (semi-autonomous)</b> for response — AI scores, recommends and stages; a human approves. Notification channels (Teams, SMS, email) are SOAR playbooks with simulated delivery in the demo and Logic Apps delivery in production. The guardrail registry below is enforced in the playbook runner: guarded actions can never execute without a named human approval.</div>
+      <div class="note">Where automation is allowed to act, and where it must stop. The console operates at <b>AM Level 2 (semi-autonomous)</b> for response — AI scores, recommends and stages; a human approves. Notification channels (Teams, SMS, email) are Logic Apps playbooks deployed and verified in the tenant; runs triggered from this console are staged and written to the audit log here rather than re-firing the live playbook. The guardrail registry below is enforced in the playbook runner: guarded actions can never execute without a named human approval.</div>
       <div class="panel"><div class="ph"><h3>AI SOC Automation Maturity Model</h3><span class="lchip L5" title="Layer 5">L5</span><span class="tag">current posture highlighted</span></div>
         <div class="pb grid" style="gap:10px" id="matLadder"></div></div>
       <div class="grid g2" style="margin-top:16px">
@@ -961,7 +962,7 @@ async function readApiJson(r,feature,silent){
 
 
 /* ---------- stores (all start EMPTY) ---------- */
-let assets=[], maintenance=[], changes=[], EVENTS=[], explanations=[], fedRounds=[];
+let assets=[], maintenance=[], changes=[], EVENTS=[], explanations=[], anomalies=[], fedRounds=[];
 /* ---- AI Governance: policy enforcement layer (registry seeds) ---- */
 const AI_TOOLS_DEFAULT=[
  {AITool:'Azure OpenAI (CAFI tenant)',Vendor:'Microsoft',Status:'Approved',Endpoint:'https://cafi-aoai.openai.azure.com',Notes:'Internal deployment, data stays in tenant'},
@@ -977,6 +978,7 @@ const AI_ENDPOINTS_DEFAULT=[
  {Endpoint:'https://m365.cloud.microsoft',Type:'M365 Copilot',Controlled:'Yes',Gateway:'Entra ID + Purview'},
 ];
 let aiTools=AI_TOOLS_DEFAULT.slice(), aiEndpoints=AI_ENDPOINTS_DEFAULT.slice(), aiUsage=[], aiAudit=[];
+let aiToolsFromSource=false, aiEndpointsFromSource=false;
 /* ---- SOC Operations: detection coverage, hunting, cases, autonomy (registries) ---- */
 const TOP5_TACTICS=[
  {id:'TA0001',name:'Initial Access',tech:[
@@ -1071,7 +1073,7 @@ const PLAYBOOKS=[
   {n:'cafi-create-ticket',tier:'auto',d:'Opens incident ticket'},
   {n:'cafi-containment-request',tier:'B',d:'Approval-gated containment'},
   {n:'cafi-ai-dlp-response',tier:'B',d:'Sensitive-data-to-AI: block session, disable account (temp), notify'},
-  {n:'cafi-notify-oncall',tier:'auto',d:'SMS + email to on-call analyst (demo delivery simulated)'},
+  {n:'cafi-notify-oncall',tier:'auto',d:'SMS + email to on-call analyst (deployed Logic App; console runs are staged)'},
 ];
 const BLOB=['raw','processed','features','models','reports','fed-rounds','fed-weights','fed-global-models','fed-audit','cafi-audit-log'];
 let soarLog=[];
@@ -1104,6 +1106,10 @@ function scoreEvent(ev){
   // honour pre-scored records
   let score,disp,prescored=false;
   if(ev.ContextScore!=null&&ev.ContextScore!==''){score=parseFloat(ev.ContextScore);prescored=true;}
+  /* A row may carry an upstream Disposition without a score (line below honours it verbatim).
+     Flag that too, so the drawer never shows a locally computed breakdown as if it justified
+     a badge that actually came from the Layer 2 KQL. */
+  if(ev.Disposition)prescored=true;
   const ScoreCritical=tier===0?40:tier===1?20:(tier<0?0:5);
   const ScoreMaint=maint?-25:0;
   const ScoreChange=ch.count?-10:(a?5:0);
@@ -1124,9 +1130,20 @@ function scoreEvent(ev){
     ContextScore:Math.round(score),Disposition:disp,ConfidenceTier:conf,Prescored:prescored,
     parts:{ScoreCritical,ScoreMaint,ScoreChange,ScoreUnknown,ScoreSeverity}};
 }
-function rescoreAll(){EVENTS=EVENTS.map(e=>scoreEvent({id:e.id,_ing:e._ing,t:e.t,DeviceRef:e.DeviceRef,EventSource:e.EventSource,Severity:e.Severity,EventDetail:e.EventDetail,DeviceId:e._rawDeviceId,ContextScore:e._preScore,Disposition:e._preDisp}));}
+function rescoreAll(){EVENTS=EVENTS.map(e=>{
+  const n=scoreEvent({id:e.id,_ing:e._ing,t:e.t,DeviceRef:e.DeviceRef,EventSource:e.EventSource,Severity:e.Severity,EventDetail:e.EventDetail,DeviceId:e._rawDeviceId,ContextScore:e._preScore,Disposition:e._preDisp});
+  /* provenance must survive repeated rescores — a single LAW sync rescores three times
+     (assets, maint, changes), and without this the pre-scored L2 values were lost after
+     the first pass and every event was silently re-scored locally. */
+  n._rawDeviceId=e._rawDeviceId;n._preScore=e._preScore;n._preDisp=e._preDisp;n.__k=e.__k;
+  return n;});}
 
 /* ---------- ingestion ---------- */
+/* Idempotency: every append-style feed carries a stable key on __k so a feed can be
+   re-pulled (↻ Refresh Data, or an overlapping query) without duplicating rows. */
+function dkey(){return Array.prototype.slice.call(arguments).map(v=>String(v==null?'':v).trim().toLowerCase()).join('\u0001');}
+function dts(r){const v=r.TimeGenerated||r.timestamp||r.Time||r.time||'';return isFinite(Date.parse(v))?new Date(v).toISOString():String(v||'');}
+function dupsert(arr,row,key){row.__k=key;const i=arr.findIndex(x=>x.__k===key);if(i>=0){arr[i]=row;return false;}arr.push(row);return true;}
 function asArray(data){
   if(Array.isArray(data))return data;
   if(data&&Array.isArray(data.value))return data.value; // OData
@@ -1141,26 +1158,39 @@ function ingest(kind,rows){
   rows=rows||[];let n=0;
   if(kind==='assets'){
     rows.forEach(r=>{if(!r.DeviceId&&!r.Hostname)return;const o={DeviceId:r.DeviceId,Hostname:r.Hostname,AssetRole:r.AssetRole,CriticalityTier:r.CriticalityTier,OwningSector:r.OwningSector,SiteCode:r.SiteCode,Vendor:r.Vendor,Protocol:r.Protocol};
-      const i=assets.findIndex(x=>eqi(x.DeviceId,o.DeviceId));i>=0?assets[i]=o:assets.push(o);n++;});
+      dupsert(assets,o,dkey('asset',o.DeviceId||o.Hostname));n++;});
     rescoreAll();
   }else if(kind==='maint'){
-    rows.forEach(r=>{if(!r.SiteCode)return;maintenance.push(r);n++;});rescoreAll();
+    rows.forEach(r=>{if(!r.SiteCode)return;dupsert(maintenance,r,dkey('maint',r.WindowId||dkey(r.SiteCode,r.OwningSector,r.StartTime,r.EndTime)));n++;});rescoreAll();
   }else if(kind==='changes'){
-    rows.forEach(r=>{if(!r.DeviceId)return;changes.push(r);n++;});rescoreAll();
+    rows.forEach(r=>{if(!r.DeviceId)return;dupsert(changes,r,dkey('chg',r.ContextId||dkey(r.DeviceId,r.ChangeType,r.ChangeTimestamp)));n++;});rescoreAll();
   }else if(kind==='explanations'){
-    rows.forEach(r=>{explanations.push(r);n++;});
+    rows.forEach(r=>{dupsert(explanations,r,dkey('expl',r.DeviceRef||r.DeviceRef_s,dts(r)));n++;});
+  }else if(kind==='anomaly'){
+    /* Layer 3 CAFI_AnomalyScores_CL — anomaly scores, NOT events. These rows carry no
+       Severity / EventSource / EventDetail, so ingesting them into EVENTS produced
+       severity-less pseudo-events that polluted the triage queue and the disposition
+       counts while never reaching the anomaly lookup. They live here instead. */
+    rows.forEach(r=>{dupsert(anomalies,r,dkey('anom',r.DeviceRef||r.DeviceRef_s,dts(r)));n++;});
   }else if(kind==='aiusage'){
-    rows.forEach(r=>{r._t=(r.TimeGenerated&&isFinite(Date.parse(r.TimeGenerated)))?new Date(r.TimeGenerated):now();aiUsage.push(r);n++;});
+    rows.forEach(r=>{r._t=(r.TimeGenerated&&isFinite(Date.parse(r.TimeGenerated)))?new Date(r.TimeGenerated):now();
+      dupsert(aiUsage,r,dkey('aiu',dts(r),r.UserId||r.User,r.AITool,r.Action||r.Activity,r.Endpoint));n++;});
     if(aiUsage.length>800)aiUsage=aiUsage.slice(-800);
   }else if(kind==='aitools'){
-    rows.forEach(r=>{if(!r.AITool)return;const i=aiTools.findIndex(x=>eqi(x.AITool,r.AITool));i>=0?aiTools[i]=r:aiTools.push(r);n++;});
+    /* The tenant watchlist is the single source of truth (guide 7.5). The built-in
+       AI_TOOLS_DEFAULT list is an offline seed only — the first authoritative feed replaces
+       it wholesale, otherwise seed rows keyed on different strings (e.g. 'Claude (public)'
+       vs 'Claude (Anthropic)') coexist with the watchlist and contradict it. */
+    if(rows.some(r=>r.AITool)&&!aiToolsFromSource){aiTools=[];aiToolsFromSource=true;}
+    rows.forEach(r=>{if(!r.AITool)return;dupsert(aiTools,r,dkey('tool',r.AITool));n++;});
   }else if(kind==='aiendpoints'){
-    rows.forEach(r=>{if(!r.Endpoint)return;const i=aiEndpoints.findIndex(x=>eqi(x.Endpoint,r.Endpoint));i>=0?aiEndpoints[i]=r:aiEndpoints.push(r);n++;});
+    if(rows.some(r=>r.Endpoint)&&!aiEndpointsFromSource){aiEndpoints=[];aiEndpointsFromSource=true;}
+    rows.forEach(r=>{if(!r.Endpoint)return;dupsert(aiEndpoints,r,dkey('ep',r.Endpoint));n++;});
   }else if(kind==='fed'){
     const toList=v=>Array.isArray(v)?v:(v==null||v===''?[]:String(v).split(/[;,]/).map(x=>x.trim()).filter(Boolean));
     rows.forEach(r=>{const round=r.round!=null?+r.round:(r.Round!=null?+r.Round:fedRounds.length+1);
       const g=r.global_offset!=null?+r.global_offset:(r.global!=null?+r.global:(r.GlobalOffset!=null?+r.GlobalOffset:null));
-      fedRounds.push({round,global:g,per:r.per_node_offsets||r.per||{},accepted:toList(r.accepted_nodes||r.accepted),rejected:toList(r.rejected_nodes||r.rejected)});n++;});
+      dupsert(fedRounds,{round,global:g,per:r.per_node_offsets||r.per||{},accepted:toList(r.accepted_nodes||r.accepted),rejected:toList(r.rejected_nodes||r.rejected)},dkey('fed',round));n++;});
     fedRounds.sort((a,b)=>a.round-b.round);
   }else{ // events
     const _newEvents=[];
@@ -1174,8 +1204,18 @@ function ingest(kind,rows){
         DeviceId:r.DeviceId,TimeGenerated:ts,t:ts&&isFinite(Date.parse(ts))?new Date(ts):now(),
         ContextScore:r.ContextScore,Disposition:r.Disposition});
       e._rawDeviceId=r.DeviceId;e._preScore=r.ContextScore;e._preDisp=r.Disposition;
-      EVENTS.push(e);_newEvents.push(e);pushIngest(e);n++;});
-    if(EVENTS.length>2000)EVENTS=EVENTS.slice(-2000);
+      /* Stable identity so a re-pull, or two feeds covering the same table (hist_events and
+         the ContextualAlertScore function both read the event tables), cannot double-count. */
+      const ek=dkey('ev',e.DeviceRef,dts(r)||e.t.toISOString(),e.Severity,e.EventDetail);
+      e.__k=ek;
+      const ix=EVENTS.findIndex(x=>x.__k===ek);
+      if(ix<0){EVENTS.push(e);_newEvents.push(e);pushIngest(e);}
+      /* Same event, two feeds. A record carrying the Layer 2 KQL score/disposition is
+         authoritative and must not be replaced by a locally re-scored copy of itself
+         (hist_events runs after the ContextualAlertScore feed). */
+      else if(e.Prescored&&!EVENTS[ix].Prescored){EVENTS[ix]=e;}
+      n++;});
+    if(EVENTS.length>3000)EVENTS=EVENTS.slice(-3000);
     try{heliosNotifyNew(_newEvents);}catch(e){}
   }
   renderAll();renderInfra();renderDataStrip();try{renderGovern();}catch(e){}
@@ -1215,6 +1255,7 @@ const TEMPLATES={
   maint:'WindowId,SiteCode,OwningSector,StartTime,EndTime,WindowType,Description,ApprovedBy\n',
   changes:'ContextId,DeviceId,ChangeType,ChangeTimestamp,ChangedBy,ChangeDetail\n',
   explanations:'TimeGenerated,DeviceRef,AnomalyScore,ContextStatus,NarrativeSummary,PivotSteps,Driver1_Feature,Driver1_SHAPValue,Driver2_Feature,Driver2_SHAPValue,Driver3_Feature,Driver3_SHAPValue,Driver4_Feature,Driver4_SHAPValue,Driver5_Feature,Driver5_SHAPValue\n',
+  anomaly:'TimeGenerated,DeviceRef,AnomalyScore,ContextStatus\n',
   fed:'round,global_offset,accepted_nodes,rejected_nodes\n',
   aiusage:'TimeGenerated,UserId,Department,AITool,Endpoint,Action,DataClassification,SensitiveDetected,Logged,Detail\n',
   aitools:'AITool,Vendor,Status,Endpoint,Notes\n',
@@ -1231,13 +1272,14 @@ const HINTS={events:'TimeGenerated, EventSource(IT/OT), DeviceRef, Severity, Eve
   maint:'WindowId, SiteCode, OwningSector, StartTime, EndTime, WindowType, Description, ApprovedBy',
   changes:'ContextId, DeviceId, ChangeType, ChangeTimestamp, ChangedBy, ChangeDetail',
   explanations:'DeviceRef, AnomalyScore, NarrativeSummary, PivotSteps, Driver1_Feature, Driver1_SHAPValue …',
+  anomaly:'TimeGenerated, DeviceRef, AnomalyScore, ContextStatus',
   fed:'round, global_offset, accepted_nodes, rejected_nodes',
   aiusage:'TimeGenerated, UserId, Department, AITool, Endpoint, Action, DataClassification, SensitiveDetected, Logged, Detail',
   aitools:'AITool, Vendor, Status, Endpoint, Notes',
   aiendpoints:'Endpoint, Type, Controlled, Gateway'};
 $('#upType').addEventListener('change',()=>{$('#dropHint').textContent=HINTS[$('#upType').value];});
 
-function clearData(){assets=[];maintenance=[];changes=[];EVENTS=[];explanations=[];fedRounds=[];soarLog=[];aiUsage=[];aiAudit=[];aiTools=AI_TOOLS_DEFAULT.slice();aiEndpoints=AI_ENDPOINTS_DEFAULT.slice();fpFeedback=[];overrides=[];huntLog=[];caseState={};selCase=null;HUNTS.forEach(h=>{h.lastRun=null;h.findings=0;h.sample=[];});DETECTIONS.forEach(r=>{r.fp=0;r.on=true;});
+function clearData(){assets=[];maintenance=[];changes=[];EVENTS=[];explanations=[];anomalies=[];fedRounds=[];soarLog=[];aiUsage=[];aiAudit=[];aiTools=AI_TOOLS_DEFAULT.slice();aiEndpoints=AI_ENDPOINTS_DEFAULT.slice();aiToolsFromSource=false;aiEndpointsFromSource=false;fpFeedback=[];overrides=[];huntLog=[];caseState={};selCase=null;HUNTS.forEach(h=>{h.lastRun=null;h.findings=0;h.sample=[];});DETECTIONS.forEach(r=>{r.fp=0;r.on=true;});
   $('#ingestFeed').innerHTML='';$('#upResult').innerHTML='<div class="st off">All data cleared.</div>';
   renderAll();renderInfra();renderML();renderSoar();renderGovern();try{renderDetect();renderHunt();renderCases();}catch(e){}renderDataStrip();toast('All session data cleared');}
 
@@ -1280,7 +1322,7 @@ function togglePoll(){
 /* ========== CAFI-LAW auto-sync (Item 6) ========== */
 const LAW_FEEDS = {
   l3: {
-    kind: 'events',
+    kind: 'anomaly',
     label: 'L3 Anomaly Scores',
     query: 'CAFI_AnomalyScores_CL | order by TimeGenerated desc | take 500',
     timespan: 'P30D'
@@ -1404,12 +1446,17 @@ async function lawPullOne(key){
   }
 }
 
+let lawSyncing=false;
 async function lawSyncAll(manual){
   if(!(AUTH && AUTH.mode==='sso' && AUTH.user)){
     if(manual) toastApiAuth('CAFI-LAW Refresh');
     renderLawStatus();
     return;
   }
+  /* A second click while a pass is in flight would interleave two full syncs. */
+  if(lawSyncing){ if(manual) toast('CAFI-LAW sync already running…'); return; }
+  lawSyncing=true;
+  const rb=$('#lawRefreshBtn'); if(rb) rb.disabled=true;
   const el = $('#lawResult');
   if(el) el.textContent = manual ? 'Refreshing all CAFI-LAW feeds…' : 'Loading CAFI-LAW feeds…';
   const keys = Object.keys(LAW_FEEDS);
@@ -1425,6 +1472,8 @@ async function lawSyncAll(manual){
   try{ renderDataStrip(); }catch(e){}
   if(el) el.textContent = 'Sync complete · '+total+' row(s) across feeds · '+new Date().toISOString().replace('T',' ').slice(0,19)+'Z';
   if(manual) toast('CAFI-LAW refresh complete');
+  lawSyncing=false;
+  if(rb) rb.disabled=false;
 }
 
 function lawAutoSyncOnSignIn(){
@@ -1462,7 +1511,7 @@ function renderKPIs(){
   const cards=[
     {lbl:'Escalations open',num:esc,bar:'var(--esc)',meta:esc?'requires action':'—'},
     {lbl:'Under investigation',num:inv,bar:'var(--inv)',meta:inv?'active triage':'—'},
-    {lbl:'Mean context score',num:EVENTS.length?avg:'—',bar:'var(--brand)',meta:'0–120 scale'},
+    {lbl:'Mean context score',num:EVENTS.length?avg:'—',bar:'var(--brand)',meta:'scale −30 to 95'},
     {lbl:'OT events',num:ot,bar:'var(--ot)',meta:pollTimer?'auto-refresh on':'Defender for IoT'},
   ];
   $('#kpis').innerHTML=cards.map(c=>`<div class="panel kpi"><span class="bar" style="background:${c.bar}"></span><div class="pb"><div class="lbl">${c.lbl}</div><div class="num">${c.num}</div><div class="meta muted">${c.meta}</div></div></div>`).join('');
@@ -1490,7 +1539,11 @@ function renderVol(){
   if(!EVENTS.length){$('#volChart').innerHTML=emptyBox('▤','No events yet — load watchlists and events under Data Sources to populate the stream.',CTA_LOAD);return;}
   const W=720,H=210,p=26,buckets=24;
   const arr=Array.from({length:buckets},()=>({Escalate:0,Investigate:0,Monitor:0,Suppress:0}));
-  const t0=EVENTS[0].t.getTime(),span=Math.max(1,EVENTS[EVENTS.length-1].t.getTime()-t0);
+  /* EVENTS is not sorted — every LAW_FEEDS query uses 'order by TimeGenerated desc', so
+     taking first/last as the range gave a negative span and collapsed every event into
+     bucket 0. Derive the window from the actual min/max instead. */
+  const _tv=EVENTS.map(e=>e.t.getTime());
+  const t0=Math.min.apply(null,_tv),span=Math.max(1,Math.max.apply(null,_tv)-t0);
   EVENTS.forEach(e=>{let i=Math.floor((e.t.getTime()-t0)/span*(buckets-1));i=Math.max(0,Math.min(buckets-1,i));if(arr[i][e.Disposition]!=null)arr[i][e.Disposition]++;});
   const max=Math.max(1,...arr.map(b=>b.Escalate+b.Investigate+b.Monitor+b.Suppress));
   const bw=(W-p*2)/buckets,col={Escalate:'var(--esc)',Investigate:'var(--inv)',Monitor:'var(--mon)',Suppress:'var(--sup)'};
@@ -1509,9 +1562,9 @@ function renderDonut(){
 }
 function renderSev(){
   if(!EVENTS.length){$('#sevChart').innerHTML=emptyBox('▦','No severity data — ingest events to populate the severity breakdown.',CTA_LOAD);return;}
-  const c={Critical:0,High:0,Medium:0,Low:0};EVENTS.forEach(e=>{if(c[e.Severity]!=null)c[e.Severity]++;});
+  const c={Critical:0,High:0,Medium:0,Low:0,Unknown:0};EVENTS.forEach(e=>{c[e.Severity]!=null?c[e.Severity]++:c.Unknown++;});
   const max=Math.max(1,...Object.values(c));
-  $('#sevChart').innerHTML=['Critical','High','Medium','Low'].map(s=>`<div style="margin-bottom:12px"><div class="row between tiny" style="margin-bottom:4px"><span>${s}</span><span class="mono muted">${c[s]}</span></div><div class="meter"><span style="width:${c[s]/max*100}%;background:${sevColor(s)}"></span></div></div>`).join('');
+  $('#sevChart').innerHTML=['Critical','High','Medium','Low'].concat(c.Unknown?['Unknown']:[]).map(s=>`<div style="margin-bottom:12px"><div class="row between tiny" style="margin-bottom:4px"><span>${s}</span><span class="mono muted">${c[s]}</span></div><div class="meter"><span style="width:${c[s]/max*100}%;background:${sevColor(s)}"></span></div></div>`).join('');
 }
 function renderCtx(){
   if(!EVENTS.length){$('#ctxStatus').innerHTML=emptyBox('◈','No context resolved yet — load AssetInventory and events to compute join quality.',CTA_LOAD);return;}
@@ -1548,13 +1601,15 @@ function renderTriage(){
     .map(([d,bar])=>`<div class="panel kpi"><span class="bar" style="background:${bar}"></span><div class="pb"><div class="lbl">${d}</div><div class="num">${k(d)}</div></div></div>`).join('');
 }
 
+function anomVal(r){const v=r.AnomalyScore!=null?r.AnomalyScore:r.AnomalyScore_d;const f=parseFloat(v);return isFinite(f)?f:0;}
 function findExplanation(e){
-  if(!explanations.length)return null;
+  // Prefer a Layer 4 explanation — it carries the SHAP drivers and the narrative.
   const cands=explanations.filter(x=>eqi(x.DeviceRef||x.DeviceRef_s,e.DeviceRef));
-  if(!cands.length)return null;
-  // most anomalous = lowest AnomalyScore
-  cands.sort((a,b)=>parseFloat(a.AnomalyScore||a.AnomalyScore_d||0)-parseFloat(b.AnomalyScore||b.AnomalyScore_d||0));
-  return cands[0];
+  if(cands.length){cands.sort((a,b)=>anomVal(a)-anomVal(b));return cands[0];}
+  // Otherwise fall back to a bare Layer 3 anomaly score so the L3 feed still surfaces.
+  const an=anomalies.filter(x=>eqi(x.DeviceRef||x.DeviceRef_s,e.DeviceRef));
+  if(an.length){an.sort((a,b)=>anomVal(a)-anomVal(b));return an[0];}
+  return null;
 }
 function openDrawer(id){
   const e=EVENTS.find(x=>x.id===id);if(!e)return;
@@ -1630,7 +1685,7 @@ const connMeta=[
  {key:'explanations',grp:'core',on:true,n:'L4 CAFI Explanations CL',d:'CAFI_Explanations_CL',ic:'🧠',kind:'Data source (ML output)',purpose:'SHAP driver records written by the ML pipeline',api:'Log Analytics custom log CAFI_Explanations_CL',auth:'ML workspace managed identity',actions:['writeExplanations'],integration:'Azure ML writes SHAP drivers; the console joins them into the case timeline',usedBy:'Case Management, Triage drawer'},
  {key:'fed',grp:'core',on:true,n:'L6 Federation Audit',d:'fed-audit/',ic:'◈',kind:'Data source (federated)',purpose:'Per-round federated training audit',api:'Custom log CAFI_FedAudit_CL',auth:'Aggregator managed identity',actions:['writeRound'],integration:'The L6 aggregator writes each round; the console renders convergence and Byzantine rejections',usedBy:'ML & Federation'},
  {key:'aitools',grp:'core',on:true,n:'Approved AI Tools',d:'governance allow-list',ic:'✅',kind:'Context (governance)',purpose:'Allow-list of sanctioned AI tools for shadow-AI detection',api:'Sentinel watchlist ApprovedAITools',auth:'Sentinel Contributor',actions:['getWatchlist'],integration:'AI-usage events are matched against this list; unlisted tools raise shadow-AI alerts',usedBy:'AI Governance'},
- {key:'aiendpoints',grp:'core',on:true,n:'Controlled Endpoints',d:'governance endpoint registry',ic:'🚦',kind:'Context (governance)',purpose:'Registry of AI endpoints under session control or gateway enforcement',api:'Sentinel watchlist ControlledEndpoints',auth:'Sentinel Contributor',actions:['getWatchlist'],integration:'Endpoint control status drives block / allow decisions in the governance engine and Helios enforcement',usedBy:'AI Governance, Helios'},
+ {key:'aiendpoints',grp:'core',on:true,n:'Controlled AI Endpoints',d:'governance endpoint registry',ic:'🚦',kind:'Context (governance)',purpose:'Registry of AI endpoints under session control or gateway enforcement',api:'Sentinel watchlist ControlledAIEndpoints',auth:'Sentinel Contributor',actions:['getWatchlist'],integration:'Endpoint control status drives block / allow decisions in the governance engine and Helios enforcement',usedBy:'AI Governance, Helios'},
  {key:'itsm',grp:'core',on:true,n:'Jira (ITSM)',d:'ticketing — swappable',ic:'🎫',kind:'Response connector',purpose:'Open and update incident tickets',api:'https://{site}.atlassian.net/rest/api/3/issue',auth:'API token (Key Vault) · basic auth header',actions:['createIssue','transitionIssue','addComment'],integration:'A Logic App creates a Jira issue and writes the key back onto the Sentinel incident',usedBy:'cafi-create-ticket'},
  {key:'aws_cloudtrail',grp:'third',on:false,n:'AWS CloudTrail',d:'AWS audit',ic:'🟧',kind:'Data source (Cloud audit)',purpose:'AWS account and API activity',api:'CloudTrail Lake query / S3 export',auth:'AWS IAM role, external ID, secret in Key Vault',actions:['lookupEvents','queryLake'],integration:'AWS activity maps to cloud ATT&CK detections and triage events',usedBy:'Threat Hunting, Triage'},
  {key:'gcp_scc',grp:'third',on:false,n:'Google Cloud Security Command Center',d:'GCP findings',ic:'🟦',kind:'Data source (Cloud security)',purpose:'GCP security findings, misconfigurations and threat detections',api:'https://securitycenter.googleapis.com/v2/organizations/{org}/sources/-/findings',auth:'GCP service account key stored in Key Vault',actions:['listFindings'],integration:'SCC findings are normalised into the IT event feed and scored by the L2 pipeline',usedBy:'Alert Triage, Detection Coverage'},
@@ -1875,10 +1930,10 @@ function generateSecurityReport(){
 
   const escRate=tot?Math.round(s.disposition.Escalate/tot*100):0;
   const exec=!tot?'No telemetry has been ingested into the console at the time of this report. Connect a data source or upload an event batch to populate the operational picture, then regenerate this report.'
-    :`The console fused <b>${tot}</b> security event(s) across the IT and OT estate over the ${rangeTxt} window. <b>${s.disposition.Escalate}</b> require immediate escalation (${escRate}% of volume) and <b>${s.disposition.Investigate}</b> are under investigation. Mean context score is <b>${s.meanScore}/120</b> and context-fusion join quality is <b>${s.joinQuality}%</b> (${s.joinQuality>=80?'within target':'below the 80% target'}). OT-sourced telemetry accounts for <b>${s.otShare}%</b> of events.`;
+    :`The console fused <b>${tot}</b> security event(s) across the IT and OT estate over the ${rangeTxt} window. <b>${s.disposition.Escalate}</b> require immediate escalation (${escRate}% of volume) and <b>${s.disposition.Investigate}</b> are under investigation. Mean context score is <b>${s.meanScore}</b> (scale −30 to 95) and context-fusion join quality is <b>${s.joinQuality}%</b> (${s.joinQuality>=80?'within target':'below the 80% target'}). OT-sourced telemetry accounts for <b>${s.otShare}%</b> of events.`;
 
   const ingestNarr=tot
-    ?`Ingestion fused <b>${tot}</b> security event(s) with <b>${assets.length}</b> inventory asset(s), <b>${maintenance.length}</b> maintenance window(s) and <b>${changes.length}</b> change record(s). Layer 2 context fusion reached <b>${s.joinQuality}%</b> join quality and a mean context score of <b>${s.meanScore}/120</b>.`
+    ?`Ingestion fused <b>${tot}</b> security event(s) with <b>${assets.length}</b> inventory asset(s), <b>${maintenance.length}</b> maintenance window(s) and <b>${changes.length}</b> change record(s). Layer 2 context fusion reached <b>${s.joinQuality}%</b> join quality and a mean context score of <b>${s.meanScore}</b> (scale −30 to 95).`
     :'No telemetry has been ingested; the figures below reflect an empty console.';
 
   const analysis=[];
@@ -2086,8 +2141,21 @@ const AI_POLICIES=[
  {id:'controlled-ep',name:'AI access via controlled endpoints',ctrl:'NIST AI RMF MANAGE-2 · gateway'},
 ];
 const SENSITIVE_CLASS=['confidential','restricted','pii','customerdata','customer data','customer records','customer database','source code','secret','credential','password'];
-function aiToolApproved(name){const t=aiTools.find(x=>eqi(x.AITool,name));return t?/^appro/i.test(t.Status||''):false;}
-function aiEndpointControlled(ep){if(!ep)return false;if(aiEndpoints.some(x=>eqi(x.Endpoint,ep)&&/^y/i.test(x.Controlled||'Yes')))return true;return /^controlled:|openai\.azure\.com|cloud\.microsoft/i.test(ep);}
+/* Status vocabulary differs by source: the console's own editor writes Approved/Blocked/Review,
+   while the Sentinel ApprovedAITools watchlist (guide 7.1/7.5) writes Sanctioned/Unsanctioned.
+   Both must resolve identically or every LAW-fed tool reads as shadow AI. The patterns are
+   anchored, so 'Unsanctioned' and 'Unapproved' correctly fail to match. */
+const AI_STATUS_OK=/^\s*(appro|sanction|allow|permit)/i;
+function aiStatusApproved(v){return AI_STATUS_OK.test(String(v||''));}
+function aiToolApproved(name){const t=aiTools.find(x=>eqi(x.AITool,name));return t?aiStatusApproved(t.Status):false;}
+function aiEndpointControlled(ep){
+  if(!ep)return false;
+  /* If the endpoint is registered, the registry decides — including when it says No.
+     Previously the URL-pattern fallback ran unconditionally and silently overrode an
+     explicit Controlled=No in the ControlledAIEndpoints watchlist. */
+  const rec=aiEndpoints.find(x=>eqi(x.Endpoint,ep));
+  if(rec)return /^\s*(y|true|1)/i.test(String(rec.Controlled==null?'Yes':rec.Controlled));
+  return /^controlled:|openai\.azure\.com|cloud\.microsoft/i.test(ep);}
 function classSensitive(c){c=String(c||'').toLowerCase();return SENSITIVE_CLASS.some(x=>c.includes(x));}
 function evalAIUsage(u){
   const action=String(u.Action||u.Activity||'').toLowerCase();
@@ -2165,7 +2233,7 @@ function exportAiToolsCsv(){if(!aiTools.length)return toast('No AI tools',true);
 function exportAiUsageCsv(){if(!aiUsage.length)return toast('No AI usage',true);const h=['TimeGenerated','UserId','Department','AITool','Endpoint','Action','DataClassification','SensitiveDetected','Verdict','Violations'];downloadBlob('CAFI_AIUsage_'+stamp()+'.csv',toCsv(h,aiUsage.map(u=>{const r=evalAIUsage(u);return [u.TimeGenerated||'',u.UserId||u.User||'',u.Department||'',u.AITool||'',u.Endpoint||'',u.Action||'',u.DataClassification||'',r.sensitive,r.verdict,r.violations.join(' | ')];})),'text/csv');toast('AI usage exported');}
 function exportAiAuditCsv(){if(!aiAudit.length)return toast('No AI audit entries',true);const h=['Time','Source','Subject','Policy','Action','Outcome'];downloadBlob('CAFI_AIGovernanceAudit_'+stamp()+'.csv',toCsv(h,aiAudit.map(a=>[a.t.toISOString(),a.src,a.subj,a.policy,a.act,a.out])),'text/csv');toast('AI audit exported');}
 function govReportBlock(){
-  const toolRows=aiTools.map(t=>`<tr><td>${esc(t.AITool||'')}</td><td>${esc(t.Vendor||'')}</td><td>${/^appro/i.test(t.Status||'')?'<b style="color:#15803d">Approved</b>':'<b style="color:#c2410c">'+esc(t.Status||'Unapproved')+'</b>'}</td><td>${esc(t.Notes||'')}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:#888">No AI tools registered</td></tr>';
+  const toolRows=aiTools.map(t=>`<tr><td>${esc(t.AITool||'')}</td><td>${esc(t.Vendor||'')}</td><td>${aiStatusApproved(t.Status)?'<b style="color:#15803d">'+esc(t.Status||'Approved')+'</b>':'<b style="color:#c2410c">'+esc(t.Status||'Unapproved')+'</b>'}</td><td>${esc(t.Notes||'')}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:#888">No AI tools registered</td></tr>';
   const epRows=aiEndpoints.map(e=>`<tr><td class="mono">${esc(e.Endpoint||'')}</td><td>${esc(e.Type||'')}</td><td>${/^y/i.test(e.Controlled||'')?'<b style="color:#15803d">Yes</b>':'<b style="color:#c2410c">No</b>'}</td><td>${esc(e.Gateway||'')}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:#888">No endpoints registered</td></tr>';
   const toolsBlock=`<h2>Approved AI tools &amp; controlled endpoints</h2>
 <div class="cols"><div><table><thead><tr><th>AI Tool</th><th>Vendor</th><th>Status</th><th>Notes</th></tr></thead><tbody>${toolRows}</tbody></table></div>
@@ -2287,7 +2355,7 @@ function caseTimeline(c){
   tl.push({t:e.t,tag:'L1',txt:'Detected · '+e.EventSource+' source · '+esc(e.EventDetail).slice(0,120)});
   tl.push({t:e._ing||e.t,tag:'L2',txt:'Context-fused & scored '+e.ContextScore+' → '+e.Disposition+' · confidence '+e.ConfidenceTier+' · '+e.ContextStatus+(matchedRule(e)?' · rule '+esc(matchedRule(e)):'')});
   const ex=explanations.find(x=>eqi(x.DeviceRef,e.DeviceRef));
-  if(ex)tl.push({t:e._ing||e.t,tag:'L4',txt:'Explained · anomaly '+(ex.AnomalyScore||'—')+' · '+esc(ex.NarrativeSummary||'').slice(0,140)});
+  if(ex)tl.push({t:e._ing||e.t,tag:'L4',txt:'Explained · anomaly '+(ex.AnomalyScore!=null?ex.AnomalyScore:(ex.AnomalyScore_d!=null?ex.AnomalyScore_d:'—'))+' · '+esc(ex.NarrativeSummary||'').slice(0,140)});
   soarLog.filter(a=>eqi(a.target,e.DeviceRef)).forEach(a=>tl.push({t:a.t,tag:'L5',txt:a.pb+' · '+a.act+' · '+a.out}));
   (c.st.log||[]).forEach(l=>tl.push(l));
   return tl.sort((a,b)=>a.t-b.t);
@@ -3000,7 +3068,7 @@ function openDefEditor(type,idx){
     title=isNew?'New approved AI tool':'Approved AI tool · '+item.AITool;
     html=`<label>AI Tool</label><input id="df_tool" value="${escA(item.AITool)}">
     <div class="defrow"><div><label>Vendor</label><input id="df_vendor" value="${escA(item.Vendor||'')}"></div>
-    <div><label>Status</label><select id="df_status">${['Approved','Blocked','Review'].map(s=>`<option ${s===(item.Status||'Approved')?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div><label>Status</label><select id="df_status">${(function(){const base=['Approved','Sanctioned','Review','Unsanctioned','Blocked'];const cur=item.Status||'Approved';const opts=base.indexOf(cur)>=0?base:[cur].concat(base);return opts.map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('');})()}</select></div></div>
     <label>Endpoint</label><input id="df_endpoint" value="${escA(item.Endpoint||'')}">
     <label>Notes</label><input id="df_notes" value="${escA(item.Notes||'')}">
     <div class="hint">This replaces the former Manual Upload allow-list. Saved tools appear immediately in AI Governance and Helios policy checks.</div>`;
