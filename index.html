@@ -1361,7 +1361,7 @@ const LAW_FEEDS = {
   hist_events: {
     kind: 'events',
     label: 'Historical Events',
-    query: 'CAFI_Events_CL | order by TimeGenerated desc | take 2000',
+    query: 'CAFI_Event_CL | order by TimeGenerated desc | take 2000',
     timespan: 'P90D'
   },
   assets: {
@@ -1566,7 +1566,7 @@ function renderVol(){
                    everything older shown as one bucket per UTC day, both on one
                    continuous axis with a divider between "history" and "last 24h".
                    This is what stays useful when events cluster at a single ingest
-                   timestamp (a one-shot CAFI_Events_CL push lands everything in the
+                   timestamp (a one-shot CAFI_Event_CL push lands everything in the
                    same minute) AND when real historical spread exists \u2014 recent
                    detail and long-range history in the same view instead of forcing
                    a choice between them. */
