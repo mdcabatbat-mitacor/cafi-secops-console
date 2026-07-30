@@ -1212,8 +1212,11 @@ function ingest(kind,rows){
       if(ix<0){EVENTS.push(e);_newEvents.push(e);pushIngest(e);}
       /* Same event, two feeds. A record carrying the Layer 2 KQL score/disposition is
          authoritative and must not be replaced by a locally re-scored copy of itself
-         (hist_events runs after the ContextualAlertScore feed). */
-      else if(e.Prescored&&!EVENTS[ix].Prescored){EVENTS[ix]=e;}
+         (hist_events runs after the ContextualAlertScore feed). Critically, keep the
+         EXISTING event's id — a fresh scoreEvent() call mints a new auto-incremented id,
+         and CASE-<id> is how Case Management links to caseState (ticket, log, Jira status).
+         Swapping ids here silently orphaned open cases and their linked Jira tickets. */
+      else if(e.Prescored&&!EVENTS[ix].Prescored){e.id=EVENTS[ix].id;EVENTS[ix]=e;}
       n++;});
     if(EVENTS.length>3000)EVENTS=EVENTS.slice(-3000);
     try{heliosNotifyNew(_newEvents);}catch(e){}
@@ -1760,17 +1763,26 @@ function renderML(){
     const W=720,H=240,p=34,xs=fedRounds.length;
     const vals=fedRounds.flatMap(r=>[r.global,...Object.values(r.per||{}).map(Number)].filter(v=>isFinite(v)&&v<2));
     const mn=Math.min(...vals,0)-.1,mx=Math.max(...vals,0)+.1;
-    const X=i=>p+(xs<2?0.5:i/(xs-1))*(W-p*2),Y=v=>H-p-((v-mn)/((mx-mn)||1))*(H-p*2);
+    /* Bar-per-round grid, sized from the (min,max) domain already computed above. */
+    const cw=(W-p*2)/xs,bw=cw*0.5;
+    const X=i=>p+i*cw+cw/2,Y=v=>H-p-((v-mn)/((mx-mn)||1))*(H-p*2);
+    const base=Y(0);
     const nc={NodeA:'#9b8cff',NodeB:'#36d0e0',NodeC:'#f2b134',NodeD:'#ff7da6'};let lines='';
-    FED_NODES.forEach(n=>{const pts=fedRounds.map((r,i)=>{const v=Number(r.per&&r.per[n]);return isFinite(v)&&v<2?`${X(i)},${Y(v)}`:null;}).filter(Boolean).join(' ');if(pts)lines+=`<polyline points="${pts}" fill="none" stroke="${nc[n]}" stroke-width="1.5" opacity=".55"/>`;});
-    const gpts=fedRounds.map((r,i)=>isFinite(r.global)?`${X(i)},${Y(r.global)}`:null).filter(Boolean).join(' ');
-    if(gpts)lines+=`<polyline points="${gpts}" fill="none" stroke="#fff" stroke-width="2.5"/>`;
-    fedRounds.forEach((r,i)=>{if(isFinite(r.global))lines+=`<circle cx="${X(i)}" cy="${Y(r.global)}" r="3.5" fill="#fff"/>`;if(r.rejected&&r.rejected.length)lines+=`<circle cx="${X(i)}" cy="${Y(0)}" r="6" fill="none" stroke="var(--esc)" stroke-width="2"/>`;});
+    /* Per-node offsets stay as thin context lines behind the bars — the bars are the
+       Global (FedAvg) series the round-by-round convergence is judged on. */
+    FED_NODES.forEach(n=>{const pts=fedRounds.map((r,i)=>{const v=Number(r.per&&r.per[n]);return isFinite(v)&&v<2?`${X(i)},${Y(v)}`:null;}).filter(Boolean).join(' ');if(pts)lines+=`<polyline points="${pts}" fill="none" stroke="${nc[n]}" stroke-width="1.5" opacity=".4"/>`;});
+    fedRounds.forEach((r,i)=>{
+      if(!isFinite(r.global))return;
+      const gy=Y(r.global),top=Math.min(gy,base),h=Math.max(1,Math.abs(gy-base));
+      const rej=r.rejected&&r.rejected.length;
+      lines+=`<rect x="${X(i)-bw/2}" y="${top}" width="${bw}" height="${h}" rx="2" fill="#fff" opacity="${rej?1:.9}"/>`;
+      if(rej)lines+=`<rect x="${X(i)-bw/2-2}" y="${top-2}" width="${bw+4}" height="${h+4}" rx="3" fill="none" stroke="var(--esc)" stroke-width="2"/>`;
+    });
     let grid='';for(let g=0;g<=4;g++){const y=p+g*((H-p*2)/4);grid+=`<line x1="${p}" y1="${y}" x2="${W-p}" y2="${y}" stroke="var(--line)"/><text x="4" y="${y+3}" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">${(mx-(mx-mn)/4*g).toFixed(2)}</text>`;}
     let xl='';fedRounds.forEach((r,i)=>{xl+=`<text x="${X(i)}" y="${H-12}" fill="var(--ink-faint)" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">R${r.round}</text>`;});
     const axl=`<text x="${p}" y="12" font-size="9.5" fill="var(--ink-faint)" font-weight="600">Model loss (offset) \u2193</text><text x="${W/2}" y="${H-2}" text-anchor="middle" font-size="9.5" fill="var(--ink-faint)" font-weight="600">Federated training round</text>`;
     $('#fedChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${xl}${axl}${lines}</svg>`;
-    $('#fedLegend').innerHTML='<span><i style="background:#fff"></i>Global (FedAvg)</span>'+FED_NODES.map(n=>`<span><i style="background:${nc[n]}"></i>${n}</span>`).join('');
+    $('#fedLegend').innerHTML='<span><i style="background:#fff"></i>Global offset (bar) · red outline = rejected round</span>'+FED_NODES.map(n=>`<span><i style="background:${nc[n]}"></i>${n} (line, context)</span>`).join('');
     $('#fedNodes').innerHTML=FED_NODES.map(n=>{const rej=last.rejected&&last.rejected.includes(n);const o=last.per&&last.per[n];
       return `<div class="conn" style="margin-bottom:10px;border-color:${rej?'var(--esc)':'var(--line)'}"><div class="ci" style="color:${nc[n]}">◈</div><div class="cinfo"><div class="cn">${n}</div><div class="cd">offset ${o!=null&&isFinite(o)?Number(o).toFixed(3):'—'}</div></div><div class="st ${rej?'err':(o!=null?'ok':'off')}"><span class="dot" style="background:${rej?'var(--err)':(o!=null?'var(--ok)':'#7a8aa0')};box-shadow:none"></span>${rej?'REJECTED':(o!=null?'ACCEPTED':'—')}</div></div>`;}).join('');
   }
@@ -2284,15 +2296,23 @@ function renderDetect(){
         return `<div title="${esc(x.n)}${(x.subs||[]).length?' · subs: '+x.subs.join(', '):''}" style="background:${bg};border:1px solid ${bd};border-radius:6px;padding:5px 7px;margin-bottom:5px"><div class="mono tiny" style="color:var(--ink)">${x.id}</div><div class="tiny muted" style="font-size:10px;line-height:1.25">${esc(x.n)}${(x.subs||[]).map(s=>`<div class="mono" style="color:${c.covS.has(s)?'var(--sup)':'var(--esc)'}">↳ ${s.split(' ')[0]}</div>`).join('')}</div></div>`;}).join('')+'</div>';}).join('')+'</div>';
   $('#ruleCount').textContent=DETECTIONS.filter(r=>r.on).length+' enabled / '+DETECTIONS.length;
   $('#ruleRows').innerHTML=DETECTIONS.map((r,i)=>{const h=ruleHits(r);return `<tr><td><div>${esc(r.name)}</div><div class="mono tiny muted">${r.id} · ${esc(r.sev)}</div></td><td class="mono tiny">${(r.tech||[]).join(', ')}${(r.sub||[]).length?'<div class="muted">'+r.sub.map(s=>s.split(' ')[0]).join(', ')+'</div>':''}</td><td><span class="chip ${r.src==='Custom'?'c-inv':'c-mon'}">${r.src}</span></td><td class="mono">${h||'—'}</td><td class="mono">${r.fp||0}</td><td><button class="btn sm" onclick="toggleRule(${i})">${r.on?'Disable':'Enable'}</button></td></tr>`;}).join('');
+  /* Grouped bar chart: technique (gold) and sub-technique (cyan) coverage per cycle,
+     replacing the former line chart. The final group is the live, computed-now point. */
   const pts=DRIFT_BASE.concat([{d:'Now',t:c.techPct,s:c.subPct}]);
-  const W=420,H=150,P=28;const x=i=>P+i*(W-2*P)/(pts.length-1);const y=v=>H-P-(v/100)*(H-2*P);
+  const W=420,H=150,P=28;
+  const gw=(W-2*P)/pts.length,bw=gw*0.32,gap=gw*0.06;
+  const y=v=>H-P-(v/100)*(H-2*P);
   $('#driftChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">`+
     [0,50,100].map(g=>`<line x1="${P}" y1="${y(g)}" x2="${W-P}" y2="${y(g)}" stroke="var(--line)" stroke-width="1"/><text x="${P-6}" y="${y(g)+3}" text-anchor="end" font-size="9" fill="#7f8ea6">${g}</text>`).join('')+
-    `<polyline fill="none" stroke="#f2b134" stroke-width="2" points="${pts.map((p,i)=>x(i)+','+y(p.t)).join(' ')}"/>`+
-    `<polyline fill="none" stroke="#7fe6f1" stroke-width="2" points="${pts.map((p,i)=>x(i)+','+y(p.s)).join(' ')}"/>`+
-    `<line x1="${x(pts.length-1)}" y1="${P-8}" x2="${x(pts.length-1)}" y2="${H-P}" stroke="var(--ink-faint)" stroke-dasharray="3 3" stroke-width="1"/>`+
-    pts.map((p,i)=>`<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="9" fill="#7f8ea6">${p.d}</text>`).join('')+
-    `<circle cx="${x(pts.length-1)}" cy="${y(c.techPct)}" r="3.5" fill="#f2b134"/><circle cx="${x(pts.length-1)}" cy="${y(c.subPct)}" r="3.5" fill="#7fe6f1"/></svg>`;
+    pts.map((p,i)=>{
+      const gx=P+i*gw;
+      const isNow=(i===pts.length-1);
+      const bt=y(p.t),bs=y(p.s),base=H-P;
+      return `<rect x="${gx+gap}" y="${bt}" width="${bw}" height="${base-bt}" rx="2" fill="#f2b134" opacity="${isNow?1:.55}"/>`+
+        `<rect x="${gx+gap+bw+2}" y="${bs}" width="${bw}" height="${base-bs}" rx="2" fill="#7fe6f1" opacity="${isNow?1:.55}"/>`+
+        (isNow?`<rect x="${gx+1}" y="${P-6}" width="${gw-2}" height="${base-P+6}" fill="none" stroke="var(--ink-faint)" stroke-dasharray="3 3" stroke-width="1"/>`:'')+
+        `<text x="${gx+gw/2}" y="${H-8}" text-anchor="middle" font-size="9" fill="#7f8ea6">${p.d}</text>`;
+    }).join('')+`</svg>`;
   $('#fpRows').innerHTML=fpFeedback.length?fpFeedback.map(f=>`<tr><td class="mono tiny muted">${fmtT(f.t)}</td><td class="mono tiny">${esc(f.caseId)}</td><td>${esc(f.dev)}</td><td class="tiny">${esc(f.rule||'—')}</td><td class="tiny">${esc(f.why)}</td></tr>`).join(''):'<tr><td colspan="5">'+emptyBox('▦','No false-positive feedback yet. Mark a false positive from a case timeline — the mark suppresses the alert, updates the FP rate KPI and counts against the matched rule.')+'</td></tr>';
 }
 function toggleRule(i){DETECTIONS[i].on=!DETECTIONS[i].on;renderDetect();toast(DETECTIONS[i].id+' '+(DETECTIONS[i].on?'enabled':'disabled')+' — coverage recomputed');}
