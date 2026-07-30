@@ -1,0 +1,11 @@
+TimeGenerated,UserId,Department,AITool,Endpoint,Action,DataClassification,SensitiveDetected,Logged,Detail
+2026-07-20T08:14:02Z,j.tane@mitacor.net,Water Operations,Azure OpenAI,https://cafi-aoai.openai.azure.com,Prompt,Internal,false,true,Asked for a summary of the weekly SCADA maintenance log
+2026-07-20T09:02:41Z,r.singh@mitacor.net,Electricity Grid Ops,ChatGPT (personal account),https://chat.openai.com,Paste,Confidential,true,true,Pasted substation configuration values including asset IDs into an unapproved public tool
+2026-07-20T09:45:10Z,m.chen@mitacor.net,Health IT,M365 Copilot,https://m365.cloud.microsoft,Prompt,Internal,false,true,Drafted a patient appointment reminder template with no PII entered
+2026-07-20T10:30:55Z,a.fetu@mitacor.net,Water Operations,Gemini (personal account),https://gemini.google.com,Paste,Restricted,true,false,Attempted to paste a customer billing export; blocked before submission by browser DLP policy
+2026-07-20T11:05:19Z,k.wiremu@mitacor.net,Electricity Grid Ops,Helios,controlled://helios,Prompt,Internal,false,true,Asked Helios to explain a MITRE ATT&CK technique referenced in an open incident
+2026-07-20T12:12:37Z,s.patel@mitacor.net,Health IT,ChatGPT (personal account),https://chat.openai.com,Paste,Confidential,true,true,Pasted a de-identified but still restricted clinical scheduling extract into an unapproved tool
+2026-07-20T13:20:04Z,l.ngata@mitacor.net,Water Operations,Azure OpenAI,https://cafi-aoai.openai.azure.com,Prompt,Public,false,true,Requested draft wording for a public-facing water-quality notice
+2026-07-20T14:08:52Z,d.brown@mitacor.net,Electricity Grid Ops,Unknown local AI plugin,https://unknown-endpoint.example,API call,Confidential,true,false,Browser extension made an undocumented API call to an unrecognised AI endpoint; flagged
+2026-07-20T15:41:16Z,h.walker@mitacor.net,Health IT,M365 Copilot,https://m365.cloud.microsoft,Prompt,Restricted,true,true,Copilot's built-in Purview DLP check blocked a prompt containing a patient identifier before submission
+2026-07-20T16:29:03Z,t.mahaki@mitacor.net,Water Operations,Helios,controlled://helios,Prompt,Internal,false,true,Asked Helios to summarise current CVEs relevant to SCADA vendors

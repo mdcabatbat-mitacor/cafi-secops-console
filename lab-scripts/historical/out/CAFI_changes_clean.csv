@@ -1,0 +1,2 @@
+ContextId,DeviceId,ChangeType,ChangeTimestamp,ChangedBy,ChangeDetail
+CHG-2201,AST-004,Software Install,2026-07-04T14:20:00Z,it-helpdesk,Installed updated CRM client and browser extension bundle

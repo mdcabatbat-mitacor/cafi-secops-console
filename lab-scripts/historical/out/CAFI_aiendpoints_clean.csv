@@ -1,0 +1,7 @@
+Endpoint,Type,Controlled,Gateway
+https://cafi-aoai.openai.azure.com,Azure OpenAI,Yes,APIM + Private Link
+controlled://helios,Embedded assistant,Yes,In-app prompt screen
+https://m365.cloud.microsoft,M365 Copilot,Yes,Entra ID + Purview
+https://api.githubcopilot.com,GitHub Copilot,Yes,CASB reverse proxy
+https://api.grammarly.com,Grammarly Business,Yes,CASB reverse proxy
+https://cafi-aoai-legacy.example.com,Legacy internal proxy,No,Not yet onboarded to APIM gateway

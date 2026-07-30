@@ -1,0 +1,5 @@
+AITool,Vendor,Status,Endpoint,Notes
+Azure OpenAI (CAFI tenant),Microsoft,Approved,https://cafi-aoai.openai.azure.com,Reviewed quarterly by security; data stays in tenant
+GitHub Copilot,GitHub,Approved,https://api.githubcopilot.com,Approved for engineering; excludes proprietary OT source repositories
+Grammarly Business,Grammarly,Approved,https://api.grammarly.com,Approved for general business writing; DLP-scanned
+ChatGPT (public),OpenAI,Blocked,https://chat.openai.com,Reconfirmed blocked — shadow AI

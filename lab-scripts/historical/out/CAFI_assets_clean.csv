@@ -1,0 +1,9 @@
+DeviceId,Hostname,AssetRole,CriticalityTier,OwningSector,SiteCode,Vendor,Protocol
+AST-001,DC01,Domain Controller,0,Corporate IT,SITE-HQ,Dell,N/A
+AST-002,plc-reactor-01,Reactor PLC,0,Plant Operations,SITE-PLANT1,Siemens,Modbus
+AST-003,FIN-SVR-02,Finance Application Server,1,Finance,SITE-HQ,HPE,N/A
+AST-004,WKS-JSMITH,Sales Workstation,2,Sales,SITE-HQ,Lenovo,N/A
+AST-005,hmi-scada-02,SCADA HMI,1,Plant Operations,SITE-PLANT1,Rockwell,DNP3
+AST-006,VPN-GW-01,VPN Gateway,1,Network,SITE-HQ,Fortinet,N/A
+AST-007,WEB-PROD-01,Production Web Server,2,Engineering,SITE-HQ,AWS,N/A
+AST-008,eng-ws-07,Engineering Workstation,3,Plant Operations,SITE-PLANT2,Dell,N/A

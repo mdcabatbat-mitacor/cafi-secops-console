@@ -1,0 +1,589 @@
+TimeGenerated,EventSource,DeviceRef,DeviceId,Severity,EventDetail
+2026-07-04T09:12:00Z,IT,DC01,AST-001,Critical,LSASS memory dump detected via mimikatz-style access on domain controller
+2026-07-04T09:40:00Z,IT,WEB-PROD-01,AST-007,Critical,Exploit attempt against public-facing app matching CVE-2024-21412 zerologon-style bypass
+2026-07-04T10:05:00Z,IT,WKS-JSMITH,AST-004,High,User clicked malicious link in phishing email with credential harvest page
+2026-07-04T11:00:00Z,IT,VPN-GW-01,AST-006,High,Multiple auth failures then successful gateway authentication suspected password spray
+2026-07-04T13:10:00Z,IT,FIN-SVR-02,AST-003,High,RDP session opened to finance server from external remote gateway
+2026-07-04T15:00:00Z,IT,WKS-JSMITH,AST-004,Medium,Scheduled task created for persistence cron-like execution pattern observed
+2026-07-04T16:45:00Z,IT,WKS-JSMITH,AST-004,High,Process masquerading as svch0st.exe detected on workstation
+2026-07-05T03:15:00Z,IT,FIN-SVR-02,AST-003,High,Encoded PowerShell command executed with -enc parameter on finance server
+2026-07-05T08:20:00Z,OT,plc-reactor-01,AST-002,Critical,Unauthorized file transfer to engineering workstation adjacent to OT PLC segment matching ICS lateral tool transfer pattern
+2026-07-05T08:45:00Z,OT,hmi-scada-02,AST-005,Critical,Internet-accessible SCADA HMI discovered exposed to public internet flagged via Shodan scan
+2026-07-05T09:10:00Z,OT,eng-ws-07,AST-008,High,SSH session established from eng-ws-07 to plant historian on port 22
+2026-07-05T09:40:00Z,OT,plc-reactor-01,AST-002,Critical,Audit logging disabled and event log tampering detected on reactor control system
+2026-07-05T10:05:00Z,IT,DC01,AST-001,High,Kerberoasting activity detected abnormal TGS service ticket requests against domain controller
+2026-07-05T10:30:00Z,OT,unknown-iot-042,,High,Removable USB media inserted on unmanaged device with unknown provenance
+2026-07-05T11:00:00Z,IT,WEB-PROD-01,AST-007,Medium,WMI remote execution observed connecting from internal management host
+2026-07-05T11:30:00Z,IT,VPN-GW-01,AST-006,Low,Network sniffing tool detected running in promiscuous mode on gateway interface
+2026-07-23T09:12:04Z,IT,WKS-042,DID-4471,High,Suspicious PowerShell execution with base64 encoded command detected on host
+2026-07-23T09:14:22Z,IT,WKS-042,DID-4471,Critical,Outbound connection to known C2 beaconing infrastructure from host
+2026-07-23T09:41:07Z,IT,SRV-DC01,DID-1002,Critical,Multiple failed logon attempts followed by successful authentication - possible brute force
+2026-07-23T10:03:55Z,OT,PLC-118,DID-8830,Medium,Unexpected configuration change written to controller outside maintenance window
+2026-07-23T10:15:31Z,IT,WKS-077,DID-4502,Low,Routine software update check completed successfully
+2026-07-23T11:02:18Z,IT,SRV-FS02,DID-1090,High,Ransomware-pattern file encryption activity detected across shared drive
+2026-07-20T08:00:17Z,IT,WEB-PROD-01,AST-007,Low,Network flow alert (BENIGN) dest_port=54865 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:00:34Z,IT,VPN-GW-01,AST-006,Low,Network flow alert (BENIGN) dest_port=55054 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:00:51Z,IT,WEB-PROD-01,AST-007,Low,Network flow alert (BENIGN) dest_port=55055 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:01:08Z,IT,VPN-GW-01,AST-006,Low,Network flow alert (BENIGN) dest_port=46236 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:01:25Z,IT,DC01,AST-001,Low,Network flow alert (BENIGN) dest_port=54863 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:01:42Z,IT,WKS-JSMITH,AST-004,Low,Network flow alert (BENIGN) dest_port=54871 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:01:59Z,IT,FIN-SVR-02,AST-003,Low,Network flow alert (BENIGN) dest_port=54925 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:02:16Z,IT,WKS-JSMITH,AST-004,Low,Network flow alert (BENIGN) dest_port=54925 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:02:33Z,OT,eng-ws-07,AST-008,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:02:50Z,IT,DC01,AST-001,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:03:07Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:03:24Z,IT,FIN-SVR-02,AST-003,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:03:41Z,OT,eng-ws-07,AST-008,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:03:58Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:04:15Z,OT,eng-ws-07,AST-008,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:04:32Z,IT,FIN-SVR-02,AST-003,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:04:49Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:05:06Z,OT,eng-ws-07,AST-008,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:05:23Z,OT,hmi-scada-02,AST-005,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:05:40Z,OT,eng-ws-07,AST-008,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:05:57Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:06:14Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:06:31Z,IT,FIN-SVR-02,AST-003,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:06:48Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:07:05Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:07:22Z,OT,plc-reactor-01,AST-002,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:07:39Z,IT,DC01,AST-001,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:07:56Z,OT,hmi-scada-02,AST-005,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:08:13Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:08:30Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:08:47Z,OT,hmi-scada-02,AST-005,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:09:04Z,IT,FIN-SVR-02,AST-003,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:09:21Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:09:38Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:09:55Z,OT,hmi-scada-02,AST-005,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:10:12Z,IT,FIN-SVR-02,AST-003,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:10:29Z,OT,hmi-scada-02,AST-005,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:10:46Z,IT,DC01,AST-001,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:11:03Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:11:20Z,OT,eng-ws-07,AST-008,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:11:37Z,IT,DC01,AST-001,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:11:54Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:12:11Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:12:28Z,IT,WKS-JSMITH,AST-004,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:12:45Z,IT,WEB-PROD-01,AST-007,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:13:02Z,OT,hmi-scada-02,AST-005,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:13:19Z,IT,VPN-GW-01,AST-006,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-20T08:13:36Z,IT,WEB-PROD-01,AST-007,Critical,Network flow alert (DDoS) dest_port=80 from historical CIC/ISCX capture Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
+2026-07-21T08:00:17Z,OT,eng-ws-07,AST-008,High,Network flow alert (FTP-Patator) dest_port=80 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:00:34Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:00:51Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:08Z,OT,plc-reactor-01,AST-002,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:25Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:42Z,OT,eng-ws-07,AST-008,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:59Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:02:16Z,OT,hmi-scada-02,AST-005,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:02:33Z,IT,VPN-GW-01,AST-006,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:02:50Z,IT,VPN-GW-01,AST-006,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:03:07Z,IT,VPN-GW-01,AST-006,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:03:24Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:03:41Z,OT,hmi-scada-02,AST-005,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:03:58Z,OT,plc-reactor-01,AST-002,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:04:15Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:04:32Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:04:49Z,OT,hmi-scada-02,AST-005,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:05:06Z,OT,hmi-scada-02,AST-005,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:05:23Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:05:40Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:05:57Z,IT,VPN-GW-01,AST-006,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:06:14Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:06:31Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:06:48Z,IT,VPN-GW-01,AST-006,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:07:05Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:07:22Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:07:39Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:07:56Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:08:13Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:08:30Z,OT,eng-ws-07,AST-008,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:08:47Z,OT,eng-ws-07,AST-008,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:09:04Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:09:21Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:09:38Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:09:55Z,OT,plc-reactor-01,AST-002,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:10:12Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:10:29Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:10:46Z,IT,DC01,AST-001,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:11:03Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:11:20Z,OT,eng-ws-07,AST-008,High,Network flow alert (FTP-Patator) dest_port=21 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:11:37Z,OT,plc-reactor-01,AST-002,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:11:54Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:12:11Z,OT,plc-reactor-01,AST-002,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:12:28Z,OT,plc-reactor-01,AST-002,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:12:45Z,OT,eng-ws-07,AST-008,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:13:02Z,IT,DC01,AST-001,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:13:19Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:13:36Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:13:53Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:14:10Z,IT,DC01,AST-001,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:14:27Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:14:44Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:15:01Z,IT,DC01,AST-001,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:15:18Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:15:35Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:15:52Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:16:09Z,OT,plc-reactor-01,AST-002,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:16:26Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:16:43Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:17:00Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:17:17Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:17:34Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:17:51Z,OT,eng-ws-07,AST-008,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:18:08Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:18:25Z,OT,plc-reactor-01,AST-002,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:18:42Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:18:59Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:19:16Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:19:33Z,IT,FIN-SVR-02,AST-003,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:19:50Z,IT,DC01,AST-001,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:20:07Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:20:24Z,OT,eng-ws-07,AST-008,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:20:41Z,OT,hmi-scada-02,AST-005,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:20:58Z,IT,WKS-JSMITH,AST-004,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:21:15Z,IT,VPN-GW-01,AST-006,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:21:32Z,OT,eng-ws-07,AST-008,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:21:49Z,OT,hmi-scada-02,AST-005,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:22:06Z,OT,hmi-scada-02,AST-005,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:22:23Z,OT,hmi-scada-02,AST-005,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:22:40Z,IT,WEB-PROD-01,AST-007,High,Network flow alert (SSH-Patator) dest_port=22 from historical CIC/ISCX workbook Tuesday-WorkingHours.pcap1_ISCX.xlsx
+2026-07-21T08:00:17Z,OT,plc-reactor-01,AST-002,Low,Network flow alert (BENIGN) dest_port=80 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:00:34Z,IT,WKS-JSMITH,AST-004,Low,Network flow alert (BENIGN) dest_port=389 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:00:51Z,IT,FIN-SVR-02,AST-003,Low,Network flow alert (BENIGN) dest_port=88 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:08Z,IT,WEB-PROD-01,AST-007,Low,Network flow alert (BENIGN) dest_port=389 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:25Z,IT,FIN-SVR-02,AST-003,Low,Network flow alert (BENIGN) dest_port=88 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:42Z,OT,eng-ws-07,AST-008,Low,Network flow alert (BENIGN) dest_port=389 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:01:59Z,IT,WEB-PROD-01,AST-007,Low,Network flow alert (BENIGN) dest_port=88 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-21T08:02:16Z,IT,DC01,AST-001,Low,Network flow alert (BENIGN) dest_port=80 from historical CIC/ISCX workbook Wednesday-workingHours.pcap1_ISCX.xlsx
+2026-07-22T08:00:17Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=212.9614977723726 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:00:34Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=442.954430116393 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:00:51Z,IT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=28457.581789617405 proto=11.5 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:01:08Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=105851.13694510877 proto=6.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:01:25Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=4896.846315088838 proto=14.8 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:01:42Z,IT,plc-reactor-01,AST-002,Critical,ARP Spoofing feature-window rate=125.60343724602716 proto=6.8 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:01:59Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=99.89014475451576 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:02:16Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=80.92864263933055 proto=15.9 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:02:33Z,IT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=67.846200435996 proto=14.8 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:02:50Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=78.53183400685472 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:03:07Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=75.29875910276576 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:03:24Z,IT,DC01,AST-001,Critical,ARP Spoofing feature-window rate=15988.183957049396 proto=6.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:03:41Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=17147.92613211074 proto=6.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:03:58Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=72.79251478594765 proto=15.3 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:04:15Z,IT,plc-reactor-01,AST-002,Critical,ARP Spoofing feature-window rate=71.0973779021028 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:04:32Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=69.91277909267961 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:04:49Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=70.37406329955454 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:05:06Z,IT,WEB-PROD-01,AST-007,Critical,ARP Spoofing feature-window rate=75.70599353349468 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:05:23Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=81.212993141986 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:05:40Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=86.28691590899604 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:05:57Z,IT,eng-ws-07,AST-008,Critical,ARP Spoofing feature-window rate=91.84991692526732 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:06:14Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=97.39095555259864 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:06:31Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=102.62910954045296 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:06:48Z,IT,plc-reactor-01,AST-002,Critical,ARP Spoofing feature-window rate=107.2402032583462 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:07:05Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=112.15318982241538 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:07:22Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=117.01206485053804 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:07:39Z,IT,WEB-PROD-01,AST-007,Critical,ARP Spoofing feature-window rate=121.73520880956904 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:07:56Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=118.02555893575888 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:08:13Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=80.4749276354001 proto=13.7 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:08:30Z,IT,WEB-PROD-01,AST-007,Critical,ARP Spoofing feature-window rate=8252.608249065252 proto=6.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:08:47Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=78.78885313621785 proto=13.7 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:09:04Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=108.3133876004068 proto=13.6 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:09:21Z,IT,DC01,AST-001,Critical,ARP Spoofing feature-window rate=105.21005857506772 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:09:38Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=102.42846436157905 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:09:55Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=99.759425668701 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:10:12Z,IT,VPN-GW-01,AST-006,Critical,ARP Spoofing feature-window rate=97.66677494692092 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:10:29Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=49.35916262402598 proto=11.5 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:10:46Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=2.098884197293616 proto=6.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:11:03Z,IT,hmi-scada-02,AST-005,Critical,ARP Spoofing feature-window rate=85.52225025659348 proto=15.9 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:11:20Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=117.04074266121832 proto=11.4 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:11:37Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=84.51722304248361 proto=15.9 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:11:54Z,IT,DC01,AST-001,Critical,ARP Spoofing feature-window rate=73.32235320443235 proto=14.8 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:12:11Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=91.05638189183294 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:12:28Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=84.00455243885284 proto=15.9 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:12:45Z,IT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=95.25715552164596 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:13:02Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=97.73065085023838 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:13:19Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=100.17942250711758 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:13:36Z,IT,DC01,AST-001,Critical,ARP Spoofing feature-window rate=102.43749422378292 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:13:53Z,OT,FIN-SVR-02,AST-003,Critical,ARP Spoofing feature-window rate=94.360458395628 proto=15.9 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:14:10Z,OT,WKS-JSMITH,AST-004,Critical,ARP Spoofing feature-window rate=106.9568626388545 proto=17.0 source=ARP_Spoofing_test.pcap.csv
+2026-07-22T08:00:17Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=39123.05453996038 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:00:34Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=72928.09597306684 proto=4.2 source=Benign_test.pcap.csv
+2026-07-22T08:00:51Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=52552.111857037686 proto=4.1 source=Benign_test.pcap.csv
+2026-07-22T08:01:08Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=24502.56270408412 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:01:25Z,IT,FIN-SVR-02,AST-003,Low,BENIGN feature-window rate=6263.15647983306 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:01:42Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=2.8033812760878525 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:01:59Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=22401.599170577785 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:02:16Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=2.2916657842813857 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:02:33Z,IT,FIN-SVR-02,AST-003,Low,BENIGN feature-window rate=1.9249830592283896 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:02:50Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=2.140300309979575 proto=8.2 source=Benign_test.pcap.csv
+2026-07-22T08:03:07Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=1.8431727133461728 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:03:24Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=2468.8044467019854 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:03:41Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=2152.1850794474785 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:03:58Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=2.0918200558484985 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:04:15Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=2.207273654346488 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:04:32Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=1.4837734648631078 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:04:49Z,IT,FIN-SVR-02,AST-003,Low,BENIGN feature-window rate=1.7780650490739625 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:05:06Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=1.995816835005824 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:05:23Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=1.9603146710838977 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:05:40Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=1.3738681026426227 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:05:57Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=1.8190242902876887 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:06:14Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=0.8535401962713374 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:06:31Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=1.525162976902363 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:06:48Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=2.122675578048836 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:07:05Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=2.115008978598349 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:07:22Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=2.107145869491349 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:07:39Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=1.0908352264459882 proto=8.2 source=Benign_test.pcap.csv
+2026-07-22T08:07:56Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=2.100162305136653 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:08:13Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=0.7606218239262332 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:08:30Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=0.9841413429245356 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:08:47Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=1.7752310016856714 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:09:04Z,OT,plc-reactor-01,AST-002,Low,BENIGN feature-window rate=2.0883838221151363 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:09:21Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=1.5574036022189623 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:09:38Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=2.082317481991155 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:09:55Z,OT,plc-reactor-01,AST-002,Low,BENIGN feature-window rate=1.900409167348096 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:10:12Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=8.853962789632998 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:10:29Z,OT,plc-reactor-01,AST-002,Low,BENIGN feature-window rate=1.2099998872463495 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:10:46Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=1.8053114384285047 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:11:03Z,OT,plc-reactor-01,AST-002,Low,BENIGN feature-window rate=1.273307316632171 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:11:20Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=2.176120199743377 proto=7.1 source=Benign_test.pcap.csv
+2026-07-22T08:11:37Z,IT,DC01,AST-001,Low,BENIGN feature-window rate=4.23819948768853 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:11:54Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=1.8764210435698487 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:12:11Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=2.065347542844177 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:12:28Z,OT,eng-ws-07,AST-008,Low,BENIGN feature-window rate=1.2327557201718058 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:12:45Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=1.7625608499530123 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:13:02Z,IT,WKS-JSMITH,AST-004,Low,BENIGN feature-window rate=1.69702560107102 proto=8.2 source=Benign_test.pcap.csv
+2026-07-22T08:13:19Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=1.325108164426053 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:13:36Z,IT,WEB-PROD-01,AST-007,Low,BENIGN feature-window rate=7170.8862656826805 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:13:53Z,OT,hmi-scada-02,AST-005,Low,BENIGN feature-window rate=19182.01671288329 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:14:10Z,IT,VPN-GW-01,AST-006,Low,BENIGN feature-window rate=5556.50527259545 proto=6.0 source=Benign_test.pcap.csv
+2026-07-22T08:00:17Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=365599.2407537501 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:00:34Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=173299.3495528593 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:00:51Z,IT,DC01,AST-001,Critical,MQTT DDoS Connect Flood feature-window rate=25389.13526571046 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:01:08Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=81750.71556831652 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:01:25Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=110477.71198554376 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:01:42Z,IT,DC01,AST-001,Critical,MQTT DDoS Connect Flood feature-window rate=259751.367362044 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:01:59Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=829565.3291825933 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:02:16Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=342020.7600162953 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:02:33Z,IT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=441532.241243875 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:02:50Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=182581.4728699063 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:03:07Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=227498.75718547983 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:03:24Z,IT,hmi-scada-02,AST-005,Critical,MQTT DDoS Connect Flood feature-window rate=270340.1200305128 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:03:41Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=47825.92699809632 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:03:58Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=218027.3633963076 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:04:15Z,IT,WEB-PROD-01,AST-007,Critical,MQTT DDoS Connect Flood feature-window rate=33134.79873731331 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:04:32Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=139503.22465588886 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:04:49Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=3334.861916394182 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:05:06Z,IT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=117769.34312410916 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:05:23Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=245485.66398478925 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:05:40Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=76963.5486931243 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:05:57Z,IT,plc-reactor-01,AST-002,Critical,MQTT DDoS Connect Flood feature-window rate=247640.80417102244 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:06:14Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=854.5293794022443 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:06:31Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=379.6271864424075 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:06:48Z,IT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=18490.965912764 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:07:05Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=184322.52615145623 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:07:22Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=8663.556478826235 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:07:39Z,IT,WEB-PROD-01,AST-007,Critical,MQTT DDoS Connect Flood feature-window rate=94456.04661785351 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:07:56Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=96254.6722301378 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:08:13Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=49300.54500393409 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:08:30Z,IT,plc-reactor-01,AST-002,Critical,MQTT DDoS Connect Flood feature-window rate=74949.88146235421 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:08:47Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=12093.270351676792 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:09:04Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=37930.48015628334 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:09:21Z,IT,WEB-PROD-01,AST-007,Critical,MQTT DDoS Connect Flood feature-window rate=19969.75141943452 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:09:38Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=42870.461038698646 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:09:55Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=319515.08982423577 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:10:12Z,IT,WEB-PROD-01,AST-007,Critical,MQTT DDoS Connect Flood feature-window rate=141652.918824019 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:10:29Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=12704.372217711389 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:10:46Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=89809.85854260443 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:11:03Z,IT,DC01,AST-001,Critical,MQTT DDoS Connect Flood feature-window rate=133364.3255077985 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:11:20Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=86373.79443766488 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:11:37Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=1453.994079836841 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:11:54Z,IT,plc-reactor-01,AST-002,Critical,MQTT DDoS Connect Flood feature-window rate=20741.75774670684 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:12:11Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=74632.00309931468 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:12:28Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=87396.92874219922 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:12:45Z,IT,plc-reactor-01,AST-002,Critical,MQTT DDoS Connect Flood feature-window rate=39218.970256777095 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:13:02Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=72721.68526997528 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:13:19Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=168391.85698597878 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:13:36Z,IT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=6528.402192271112 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:13:53Z,OT,FIN-SVR-02,AST-003,Critical,MQTT DDoS Connect Flood feature-window rate=1043.7266874952525 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:14:10Z,OT,WKS-JSMITH,AST-004,Critical,MQTT DDoS Connect Flood feature-window rate=17859.794505046328 proto=6.0 source=MQTT-DDoS-Connect_Flood_test.pcap.csv
+2026-07-22T08:00:17Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:00:34Z,OT,eng-ws-07,AST-008,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:00:51Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:01:08Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:01:25Z,OT,hmi-scada-02,AST-005,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:01:42Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:01:59Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:02:16Z,OT,hmi-scada-02,AST-005,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:02:33Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:02:50Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:03:07Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:03:24Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:03:41Z,IT,WEB-PROD-01,AST-007,High,Recon Port Scan feature-window rate=0.0 proto=7.1 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:03:58Z,OT,hmi-scada-02,AST-005,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:04:15Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:04:32Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:04:49Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:05:06Z,IT,WEB-PROD-01,AST-007,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:05:23Z,IT,WEB-PROD-01,AST-007,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:05:40Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:05:57Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:06:14Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:06:31Z,IT,WKS-JSMITH,AST-004,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:06:48Z,IT,WKS-JSMITH,AST-004,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:07:05Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:07:22Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:07:39Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=0.0 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:07:56Z,OT,eng-ws-07,AST-008,High,Recon Port Scan feature-window rate=94.96537358490568 proto=7.1 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:08:13Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:08:30Z,IT,WKS-JSMITH,AST-004,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:08:47Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:09:04Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:09:21Z,OT,eng-ws-07,AST-008,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:09:38Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:09:55Z,IT,WKS-JSMITH,AST-004,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:10:12Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:10:29Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:10:46Z,IT,WKS-JSMITH,AST-004,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:11:03Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:11:20Z,IT,WEB-PROD-01,AST-007,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:11:37Z,IT,VPN-GW-01,AST-006,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:11:54Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:12:11Z,IT,WEB-PROD-01,AST-007,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:12:28Z,OT,eng-ws-07,AST-008,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:12:45Z,IT,DC01,AST-001,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:13:02Z,OT,plc-reactor-01,AST-002,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:13:19Z,IT,WKS-JSMITH,AST-004,High,Recon Port Scan feature-window rate=158.27562264150944 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:13:36Z,IT,WEB-PROD-01,AST-007,High,Recon Port Scan feature-window rate=126.04928616043684 proto=7.1 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:13:53Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=137.8812546417408 proto=7.1 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:14:10Z,IT,FIN-SVR-02,AST-003,High,Recon Port Scan feature-window rate=144.486685728065 proto=6.0 source=Recon-Port_Scan_test.pcap.csv
+2026-07-22T08:00:17Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:00:34Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:00:51Z,IT,WEB-PROD-01,AST-007,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:01:08Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:01:25Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:01:42Z,IT,plc-reactor-01,AST-002,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:01:59Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:02:16Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:02:33Z,IT,plc-reactor-01,AST-002,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:02:50Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:03:07Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:03:24Z,IT,hmi-scada-02,AST-005,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:03:41Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:03:58Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:04:15Z,IT,DC01,AST-001,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:04:32Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:04:49Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:05:06Z,IT,DC01,AST-001,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:05:23Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:05:40Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:05:57Z,IT,plc-reactor-01,AST-002,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:06:14Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:06:31Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:06:48Z,IT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:07:05Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:07:22Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:07:39Z,IT,WEB-PROD-01,AST-007,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:07:56Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:08:13Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:08:30Z,IT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:08:47Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:09:04Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:09:21Z,IT,WEB-PROD-01,AST-007,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:09:38Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:09:55Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:10:12Z,IT,hmi-scada-02,AST-005,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:10:29Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:10:46Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:11:03Z,IT,VPN-GW-01,AST-006,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:11:20Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:11:37Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:11:54Z,IT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:12:11Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:12:28Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:12:45Z,IT,DC01,AST-001,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:13:02Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:13:19Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:13:36Z,IT,DC01,AST-001,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:13:53Z,OT,FIN-SVR-02,AST-003,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T08:14:10Z,OT,WKS-JSMITH,AST-004,Critical,TCP SYN Flood feature-window rate=0.0 proto=6.0 source=TCP_IP-DDoS-SYN_test.pcap.csv
+2026-07-22T09:14:00Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=49389 FC3=25770 from ToN_IoT capture
+2026-07-23T09:14:00Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=49389 FC3=25770 from ToN_IoT capture
+2026-07-24T09:14:01Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=49389 FC3=25770 from ToN_IoT capture
+2026-07-25T09:14:02Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=49389 FC3=25770 from ToN_IoT capture
+2026-07-21T09:14:04Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=40665 FC3=21098 from ToN_IoT capture
+2026-07-22T09:14:06Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=40665 FC3=21098 from ToN_IoT capture
+2026-07-23T09:14:07Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=57147 FC3=15924 from ToN_IoT capture
+2026-07-24T09:14:09Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=57147 FC3=15924 from ToN_IoT capture
+2026-07-25T09:14:10Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=57147 FC3=15924 from ToN_IoT capture
+2026-07-21T09:14:10Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=57147 FC3=15924 from ToN_IoT capture
+2026-07-22T09:14:11Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=55845 FC3=46317 from ToN_IoT capture
+2026-07-23T09:14:12Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=55845 FC3=46317 from ToN_IoT capture
+2026-07-24T09:14:14Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=55845 FC3=46317 from ToN_IoT capture
+2026-07-25T09:14:15Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=55845 FC3=46317 from ToN_IoT capture
+2026-07-21T09:14:15Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=42636 FC3=62152 from ToN_IoT capture
+2026-07-22T09:14:16Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=42636 FC3=62152 from ToN_IoT capture
+2026-07-23T09:14:17Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=42636 FC3=62152 from ToN_IoT capture
+2026-07-24T09:14:19Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=42636 FC3=62152 from ToN_IoT capture
+2026-07-25T09:14:20Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=16992 FC3=40713 from ToN_IoT capture
+2026-07-21T09:14:20Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=16992 FC3=40713 from ToN_IoT capture
+2026-07-22T09:14:21Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=16992 FC3=40713 from ToN_IoT capture
+2026-07-23T09:14:22Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=16992 FC3=40713 from ToN_IoT capture
+2026-07-24T09:14:24Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=57110 FC3=53198 from ToN_IoT capture
+2026-07-25T09:14:25Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=57110 FC3=53198 from ToN_IoT capture
+2026-07-21T09:14:25Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=57110 FC3=53198 from ToN_IoT capture
+2026-07-22T09:14:26Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=57110 FC3=53198 from ToN_IoT capture
+2026-07-23T09:14:27Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=5523 FC3=16415 from ToN_IoT capture
+2026-07-24T09:14:29Z,OT,FIN-SVR-02,AST-003,Critical,Modbus injection activity FC1=5523 FC3=16415 from ToN_IoT capture
+2026-07-25T09:14:30Z,OT,WKS-JSMITH,AST-004,Critical,Modbus injection activity FC1=5523 FC3=16415 from ToN_IoT capture
+2026-07-21T09:14:30Z,OT,plc-reactor-01,AST-002,Critical,Modbus injection activity FC1=5523 FC3=16415 from ToN_IoT capture
+2026-07-22T10:24:16Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=20326 FC3=57713 from ToN_IoT capture
+2026-07-23T10:24:17Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=20014 FC3=50808 from ToN_IoT capture
+2026-07-24T10:24:19Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=20014 FC3=50808 from ToN_IoT capture
+2026-07-25T10:24:21Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=20014 FC3=50808 from ToN_IoT capture
+2026-07-21T10:24:22Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=20014 FC3=50808 from ToN_IoT capture
+2026-07-22T10:24:24Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=65162 FC3=10635 from ToN_IoT capture
+2026-07-23T10:24:26Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=65162 FC3=10635 from ToN_IoT capture
+2026-07-24T10:24:27Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=65162 FC3=10635 from ToN_IoT capture
+2026-07-25T10:24:29Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=65162 FC3=10635 from ToN_IoT capture
+2026-07-21T10:24:31Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=26436 FC3=29037 from ToN_IoT capture
+2026-07-22T10:24:32Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=26436 FC3=29037 from ToN_IoT capture
+2026-07-23T10:24:34Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=26436 FC3=29037 from ToN_IoT capture
+2026-07-24T10:24:36Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=26436 FC3=29037 from ToN_IoT capture
+2026-07-25T10:24:37Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=53982 FC3=23486 from ToN_IoT capture
+2026-07-21T10:24:39Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=53982 FC3=23486 from ToN_IoT capture
+2026-07-22T10:24:41Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=53982 FC3=23486 from ToN_IoT capture
+2026-07-23T10:24:42Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=53982 FC3=23486 from ToN_IoT capture
+2026-07-24T10:24:44Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=8816 FC3=35891 from ToN_IoT capture
+2026-07-25T10:24:46Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=8816 FC3=35891 from ToN_IoT capture
+2026-07-21T10:24:47Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=8816 FC3=35891 from ToN_IoT capture
+2026-07-22T10:24:49Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=8816 FC3=35891 from ToN_IoT capture
+2026-07-23T10:24:51Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=40390 FC3=24949 from ToN_IoT capture
+2026-07-24T10:24:52Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=40390 FC3=24949 from ToN_IoT capture
+2026-07-25T10:24:54Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=40390 FC3=24949 from ToN_IoT capture
+2026-07-21T10:24:59Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=17431 FC3=62138 from ToN_IoT capture
+2026-07-22T10:25:01Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=17431 FC3=62138 from ToN_IoT capture
+2026-07-23T10:25:04Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=8328 FC3=50740 from ToN_IoT capture
+2026-07-24T10:25:06Z,OT,FIN-SVR-02,AST-003,Critical,Modbus backdoor activity FC1=8328 FC3=50740 from ToN_IoT capture
+2026-07-25T10:25:07Z,OT,WKS-JSMITH,AST-004,Critical,Modbus backdoor activity FC1=8328 FC3=50740 from ToN_IoT capture
+2026-07-21T10:25:09Z,OT,plc-reactor-01,AST-002,Critical,Modbus backdoor activity FC1=8328 FC3=50740 from ToN_IoT capture
+2026-07-22T12:41:02Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=41216 FC3=64230 from ToN_IoT capture
+2026-07-23T12:41:02Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=41216 FC3=64230 from ToN_IoT capture
+2026-07-24T12:41:02Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=58280 FC3=24951 from ToN_IoT capture
+2026-07-25T12:41:02Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=58280 FC3=24951 from ToN_IoT capture
+2026-07-21T12:41:02Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=58280 FC3=24951 from ToN_IoT capture
+2026-07-22T12:41:02Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=58280 FC3=24951 from ToN_IoT capture
+2026-07-23T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=43709 FC3=63580 from ToN_IoT capture
+2026-07-24T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=43709 FC3=63580 from ToN_IoT capture
+2026-07-25T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=43709 FC3=63580 from ToN_IoT capture
+2026-07-21T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=43709 FC3=63580 from ToN_IoT capture
+2026-07-22T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=59243 FC3=43307 from ToN_IoT capture
+2026-07-23T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=59243 FC3=43307 from ToN_IoT capture
+2026-07-24T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=59243 FC3=43307 from ToN_IoT capture
+2026-07-25T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=59243 FC3=43307 from ToN_IoT capture
+2026-07-21T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=28540 FC3=64187 from ToN_IoT capture
+2026-07-22T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=28540 FC3=64187 from ToN_IoT capture
+2026-07-23T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=28540 FC3=64187 from ToN_IoT capture
+2026-07-24T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=28540 FC3=64187 from ToN_IoT capture
+2026-07-25T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=40294 FC3=21374 from ToN_IoT capture
+2026-07-21T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=40294 FC3=21374 from ToN_IoT capture
+2026-07-22T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=40294 FC3=21374 from ToN_IoT capture
+2026-07-23T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=40294 FC3=21374 from ToN_IoT capture
+2026-07-24T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=14367 FC3=56665 from ToN_IoT capture
+2026-07-25T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=14367 FC3=56665 from ToN_IoT capture
+2026-07-21T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=14367 FC3=56665 from ToN_IoT capture
+2026-07-22T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=14367 FC3=56665 from ToN_IoT capture
+2026-07-23T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=22599 FC3=59899 from ToN_IoT capture
+2026-07-24T12:41:03Z,OT,FIN-SVR-02,AST-003,Low,Modbus normal activity FC1=22599 FC3=59899 from ToN_IoT capture
+2026-07-25T12:41:03Z,OT,WKS-JSMITH,AST-004,Low,Modbus normal activity FC1=22599 FC3=59899 from ToN_IoT capture
+2026-07-21T12:41:03Z,OT,plc-reactor-01,AST-002,Low,Modbus normal activity FC1=22599 FC3=59899 from ToN_IoT capture
+2026-07-22T13:39:51Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=0 FC3=0 from ToN_IoT capture
+2026-07-23T13:39:56Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=0 FC3=0 from ToN_IoT capture
+2026-07-24T13:40:01Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=0 FC3=0 from ToN_IoT capture
+2026-07-25T13:40:06Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=0 FC3=0 from ToN_IoT capture
+2026-07-21T13:40:11Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=55695 FC3=22584 from ToN_IoT capture
+2026-07-22T13:40:21Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=55695 FC3=22584 from ToN_IoT capture
+2026-07-23T13:40:26Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=55695 FC3=22584 from ToN_IoT capture
+2026-07-24T13:40:31Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=62379 FC3=10518 from ToN_IoT capture
+2026-07-25T13:40:32Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=62379 FC3=10518 from ToN_IoT capture
+2026-07-21T13:40:36Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=62379 FC3=10518 from ToN_IoT capture
+2026-07-22T13:40:37Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=62379 FC3=10518 from ToN_IoT capture
+2026-07-23T13:40:41Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=5917 FC3=34341 from ToN_IoT capture
+2026-07-24T13:40:42Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=5917 FC3=34341 from ToN_IoT capture
+2026-07-25T13:40:46Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=5917 FC3=34341 from ToN_IoT capture
+2026-07-21T13:40:47Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=5917 FC3=34341 from ToN_IoT capture
+2026-07-22T13:40:51Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=2795 FC3=36907 from ToN_IoT capture
+2026-07-23T13:40:52Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=2795 FC3=36907 from ToN_IoT capture
+2026-07-24T13:40:56Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=2795 FC3=36907 from ToN_IoT capture
+2026-07-25T13:40:57Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=2795 FC3=36907 from ToN_IoT capture
+2026-07-21T13:41:01Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=5482 FC3=37560 from ToN_IoT capture
+2026-07-22T13:41:02Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=5482 FC3=37560 from ToN_IoT capture
+2026-07-23T13:41:06Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=5482 FC3=37560 from ToN_IoT capture
+2026-07-24T13:41:07Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=5482 FC3=37560 from ToN_IoT capture
+2026-07-25T13:41:11Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=45122 FC3=10512 from ToN_IoT capture
+2026-07-21T13:41:16Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=45122 FC3=10512 from ToN_IoT capture
+2026-07-22T13:41:21Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=59759 FC3=37463 from ToN_IoT capture
+2026-07-23T13:41:22Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=59759 FC3=37463 from ToN_IoT capture
+2026-07-24T13:41:26Z,OT,FIN-SVR-02,AST-003,High,Modbus password activity FC1=59759 FC3=37463 from ToN_IoT capture
+2026-07-25T13:41:27Z,OT,WKS-JSMITH,AST-004,High,Modbus password activity FC1=59759 FC3=37463 from ToN_IoT capture
+2026-07-21T13:41:31Z,OT,plc-reactor-01,AST-002,High,Modbus password activity FC1=43009 FC3=44665 from ToN_IoT capture
+2026-07-22T20:20:32Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=12733 FC3=23338 from ToN_IoT capture
+2026-07-23T20:20:42Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=42898 FC3=17331 from ToN_IoT capture
+2026-07-24T20:20:47Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=42898 FC3=17331 from ToN_IoT capture
+2026-07-25T20:20:52Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=42898 FC3=17331 from ToN_IoT capture
+2026-07-21T20:20:57Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=42898 FC3=17331 from ToN_IoT capture
+2026-07-22T20:21:12Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=64790 FC3=5421 from ToN_IoT capture
+2026-07-23T20:21:17Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=64790 FC3=5421 from ToN_IoT capture
+2026-07-24T20:21:27Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=57343 FC3=11661 from ToN_IoT capture
+2026-07-25T20:22:07Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=14074 FC3=26207 from ToN_IoT capture
+2026-07-21T20:26:07Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=6862 FC3=2917 from ToN_IoT capture
+2026-07-22T20:26:47Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=22548 FC3=57373 from ToN_IoT capture
+2026-07-23T20:26:57Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=22548 FC3=57373 from ToN_IoT capture
+2026-07-24T20:27:37Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=54487 FC3=52039 from ToN_IoT capture
+2026-07-25T20:28:37Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=19993 FC3=3590 from ToN_IoT capture
+2026-07-21T20:28:47Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=1876 FC3=61870 from ToN_IoT capture
+2026-07-22T20:29:37Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=21225 FC3=2359 from ToN_IoT capture
+2026-07-23T20:29:47Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=43298 FC3=35208 from ToN_IoT capture
+2026-07-24T20:29:57Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=0 FC3=0 from ToN_IoT capture
+2026-07-25T20:30:17Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=17240 FC3=9022 from ToN_IoT capture
+2026-07-21T20:31:57Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=13928 FC3=5593 from ToN_IoT capture
+2026-07-22T20:32:27Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=54450 FC3=54568 from ToN_IoT capture
+2026-07-23T20:32:32Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=19296 FC3=57354 from ToN_IoT capture
+2026-07-24T20:32:37Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=19296 FC3=57354 from ToN_IoT capture
+2026-07-25T20:35:22Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=3142 FC3=15090 from ToN_IoT capture
+2026-07-21T20:35:27Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=3142 FC3=15090 from ToN_IoT capture
+2026-07-22T20:35:37Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=42891 FC3=43122 from ToN_IoT capture
+2026-07-23T20:38:07Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=10300 FC3=481 from ToN_IoT capture
+2026-07-24T20:38:17Z,OT,FIN-SVR-02,AST-003,High,Modbus scanning activity FC1=47251 FC3=19450 from ToN_IoT capture
+2026-07-25T20:38:32Z,OT,WKS-JSMITH,AST-004,High,Modbus scanning activity FC1=20039 FC3=41600 from ToN_IoT capture
+2026-07-21T20:38:42Z,OT,plc-reactor-01,AST-002,High,Modbus scanning activity FC1=20039 FC3=41600 from ToN_IoT capture
+2026-07-22T05:00:30Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=48968 FC3=15068 from ToN_IoT capture
+2026-07-23T05:00:31Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=48968 FC3=15068 from ToN_IoT capture
+2026-07-24T05:00:36Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=58231 FC3=20671 from ToN_IoT capture
+2026-07-25T05:00:40Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=58231 FC3=20671 from ToN_IoT capture
+2026-07-21T05:00:45Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=58231 FC3=20671 from ToN_IoT capture
+2026-07-22T05:00:46Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=63752 FC3=31453 from ToN_IoT capture
+2026-07-23T05:00:51Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=63752 FC3=31453 from ToN_IoT capture
+2026-07-24T05:00:55Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=63752 FC3=31453 from ToN_IoT capture
+2026-07-25T05:01:00Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=8607 FC3=45539 from ToN_IoT capture
+2026-07-21T05:01:01Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=8607 FC3=45539 from ToN_IoT capture
+2026-07-22T05:01:06Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=50396 FC3=44979 from ToN_IoT capture
+2026-07-23T05:01:10Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=50396 FC3=44979 from ToN_IoT capture
+2026-07-24T05:01:16Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=20631 FC3=43340 from ToN_IoT capture
+2026-07-25T05:01:21Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=20631 FC3=43340 from ToN_IoT capture
+2026-07-21T05:01:25Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=20631 FC3=43340 from ToN_IoT capture
+2026-07-22T05:01:30Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=11104 FC3=30649 from ToN_IoT capture
+2026-07-23T05:01:31Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=11104 FC3=30649 from ToN_IoT capture
+2026-07-24T05:01:36Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=62142 FC3=47532 from ToN_IoT capture
+2026-07-25T05:01:40Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=62142 FC3=47532 from ToN_IoT capture
+2026-07-21T05:01:45Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=62142 FC3=47532 from ToN_IoT capture
+2026-07-22T05:01:46Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=21144 FC3=6488 from ToN_IoT capture
+2026-07-23T05:01:51Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=21144 FC3=6488 from ToN_IoT capture
+2026-07-24T05:02:01Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=64091 FC3=14479 from ToN_IoT capture
+2026-07-25T05:02:06Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=64091 FC3=14479 from ToN_IoT capture
+2026-07-21T05:02:07Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=20047 FC3=19061 from ToN_IoT capture
+2026-07-22T05:02:22Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=35256 FC3=55434 from ToN_IoT capture
+2026-07-23T05:02:27Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=18136 FC3=51065 from ToN_IoT capture
+2026-07-24T05:02:31Z,OT,FIN-SVR-02,AST-003,High,Modbus xss activity FC1=18136 FC3=51065 from ToN_IoT capture
+2026-07-25T05:02:36Z,OT,WKS-JSMITH,AST-004,High,Modbus xss activity FC1=18136 FC3=51065 from ToN_IoT capture
+2026-07-21T05:02:37Z,OT,plc-reactor-01,AST-002,High,Modbus xss activity FC1=34673 FC3=37212 from ToN_IoT capture

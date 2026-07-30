@@ -1,0 +1,7 @@
+round,global_offset,accepted_nodes,rejected_nodes
+1,0.184,NodeA;NodeB;NodeC;NodeD,
+2,0.151,NodeA;NodeB;NodeC;NodeD,
+3,0.129,NodeA;NodeB;NodeD,NodeC
+4,0.108,NodeA;NodeB;NodeC;NodeD,
+5,0.091,NodeA;NodeB;NodeC;NodeD,
+6,0.077,NodeA;NodeB;NodeC;NodeD,
