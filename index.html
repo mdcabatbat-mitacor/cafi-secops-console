@@ -641,7 +641,7 @@
       </div></div>
       <div class="grid g4" id="caseKpis"></div>
       <div class="grid g2" style="margin-top:16px">
-        <div class="panel"><div class="ph" style="flex-wrap:wrap;row-gap:8px"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" id="jiraPollBtn" onclick="toggleJiraPoll()" style="margin-left:auto;width:126px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)" title="Poll Jira for status/assignee/comment changes every 45s">🔁 Auto-sync: OFF</button><button class="btn sm" onclick="refreshJiraTickets()" style="width:104px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)">↻ Jira Sync</button><select id="caseStatusFilter" onchange="renderCases()" style="width:104px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="width:104px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)"></div>
+        <div class="panel"><div class="ph" style="flex-wrap:wrap;row-gap:8px"><h3>Case Queue</h3><span class="lchip L4" title="Layer 4">L4</span><span class="lchip L5" title="Layer 5">L5</span><button class="btn sm" id="jiraPollBtn" onclick="toggleJiraPoll()" style="margin-left:auto;width:126px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)" title="Syncs immediately, then polls Jira for status/assignee/comment changes every 45s until turned off">Jira Sync: Off</button><select id="caseStatusFilter" onchange="renderCases()" style="width:104px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Closed</option></select><input id="caseSearch" placeholder="Search cases…" oninput="renderCases()" style="width:104px;height:26px;box-sizing:border-box;padding:0 8px;font-size:11px;border-radius:8px;border:1px solid var(--line);background:var(--bg-3,#0e1626);color:var(--ink)"></div>
           <div class="pb" id="bulkBar" style="display:none;gap:8px;align-items:center;padding:8px 16px;flex-wrap:wrap;border-bottom:1px solid var(--line)"></div>
           <div class="scroll" style="max-height:440px"><table><thead><tr><th style="width:26px"><input type="checkbox" id="caseSelectAll" onclick="toggleSelectAllCases(this)" title="Select all shown cases"></th><th>Case</th><th>Device</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead><tbody id="caseRows"></tbody></table></div></div>
         <div class="panel"><div class="ph"><h3>Evidence Timeline</h3><span class="tag">detect → enrich → explain → act → audit</span></div>
@@ -1788,10 +1788,10 @@ const connMeta=[
  {key:'aitools',grp:'core',on:true,n:'Approved AI Tools',d:'governance allow-list',ic:'✅',kind:'Context (governance)',purpose:'Allow-list of sanctioned AI tools for shadow-AI detection',api:'Sentinel watchlist ApprovedAITools',auth:'Sentinel Contributor',actions:['getWatchlist'],integration:'AI-usage events are matched against this list; unlisted tools raise shadow-AI alerts',usedBy:'AI Governance'},
  {key:'aiendpoints',grp:'core',on:true,n:'Controlled AI Endpoints',d:'governance endpoint registry',ic:'🚦',kind:'Context (governance)',purpose:'Registry of AI endpoints under session control or gateway enforcement',api:'Sentinel watchlist ControlledAIEndpoints',auth:'Sentinel Contributor',actions:['getWatchlist'],integration:'Endpoint control status drives block / allow decisions in the governance engine and Helios enforcement',usedBy:'AI Governance, Helios'},
  {key:'itsm',grp:'core',on:true,n:'Jira (ITSM)',d:'ticketing — swappable',ic:'🎫',kind:'Response connector',purpose:'Open and update incident tickets',api:'https://{site}.atlassian.net/rest/api/3/issue',auth:'API token (Key Vault) · basic auth header',actions:['createIssue','transitionIssue','addComment'],integration:'A Logic App creates a Jira issue and writes the key back onto the Sentinel incident',usedBy:'cafi-create-ticket'},
- {key:'aws_cloudtrail',grp:'third',on:false,n:'AWS CloudTrail',d:'AWS audit',ic:'🟧',kind:'Data source (Cloud audit)',purpose:'AWS account and API activity',api:'CloudTrail Lake query / S3 export',auth:'AWS IAM role, external ID, secret in Key Vault',actions:['lookupEvents','queryLake'],integration:'AWS activity maps to cloud ATT&CK detections and triage events',usedBy:'Threat Hunting, Triage'},
- {key:'gcp_scc',grp:'third',on:false,n:'Google Cloud Security Command Center',d:'GCP findings',ic:'🟦',kind:'Data source (Cloud security)',purpose:'GCP security findings, misconfigurations and threat detections',api:'https://securitycenter.googleapis.com/v2/organizations/{org}/sources/-/findings',auth:'GCP service account key stored in Key Vault',actions:['listFindings'],integration:'SCC findings are normalised into the IT event feed and scored by the L2 pipeline',usedBy:'Alert Triage, Detection Coverage'},
+ {key:'aws_cloudtrail',grp:'third',on:true,n:'AWS CloudTrail',d:'AWS audit',ic:'🟧',kind:'Data source (Cloud audit)',purpose:'AWS account and API activity',api:'CloudTrail Lake query / S3 export',auth:'AWS IAM role, external ID, secret in Key Vault',actions:['lookupEvents','queryLake'],integration:'AWS activity maps to cloud ATT&CK detections and triage events',usedBy:'Threat Hunting, Triage'},
+ {key:'gcp_scc',grp:'third',on:true,n:'Google Cloud Security Command Center',d:'GCP findings',ic:'🟦',kind:'Data source (Cloud security)',purpose:'GCP security findings, misconfigurations and threat detections',api:'https://securitycenter.googleapis.com/v2/organizations/{org}/sources/-/findings',auth:'GCP service account key stored in Key Vault',actions:['listFindings'],integration:'SCC findings are normalised into the IT event feed and scored by the L2 pipeline',usedBy:'Alert Triage, Detection Coverage'},
  {key:'crowdstrike',grp:'third',on:false,n:'CrowdStrike Falcon EDR',d:'endpoint detections',ic:'🦅',kind:'Data source (EDR)',purpose:'Falcon endpoint detections and host telemetry',api:'https://api.crowdstrike.com/detects/queries/detects/v1',auth:'OAuth2 client credentials stored in Key Vault',actions:['listDetections','getHostInfo'],integration:'Falcon detections are normalised into the IT event feed alongside Defender EDR telemetry',usedBy:'Alert Triage, Threat Hunting'},
- {key:'fortinet',grp:'third',on:false,n:'Fortinet FortiGate / FortiSIEM',d:'firewall & SIEM events',ic:'🧱',kind:'Data source (Network / SIEM)',purpose:'FortiGate firewall logs and FortiSIEM incident events',api:'FortiSIEM REST API · Syslog/CEF forward from FortiGate',auth:'API credentials stored in Key Vault',actions:['queryIncidents','collectCEF'],integration:'Fortinet events arrive over CEF or the REST API and merge into the IT event feed',usedBy:'Alert Triage, Threat Hunting'},
+ {key:'fortinet',grp:'third',on:true,n:'Fortinet FortiGate / FortiSIEM',d:'firewall & SIEM events',ic:'🧱',kind:'Data source (Network / SIEM)',purpose:'FortiGate firewall logs and FortiSIEM incident events',api:'FortiSIEM REST API · Syslog/CEF forward from FortiGate',auth:'API credentials stored in Key Vault',actions:['queryIncidents','collectCEF'],integration:'Fortinet events arrive over CEF or the REST API and merge into the IT event feed',usedBy:'Alert Triage, Threat Hunting'},
  {key:'okta',grp:'third',on:false,n:'Okta Identity Logs',d:'identity logs',ic:'🔐',kind:'Data source (IAM)',purpose:'Okta sign-in, MFA and lifecycle events',api:'https://{org}.okta.com/api/v1/logs',auth:'Okta API token stored in Key Vault',actions:['listSystemLogs'],integration:'Identity events enrich account compromise and brute-force hunts',usedBy:'Triage, Threat Hunting'},
  {key:'servicenow',grp:'third',on:false,n:'ServiceNow (ITSM)',d:'ticketing — swappable',ic:'🎫',kind:'Response connector',purpose:'Open and update incident, change and problem records',api:'https://{instance}.service-now.com/api/now/table/incident',auth:'OAuth/client credentials stored in Key Vault',actions:['createIncident','updateIncident','addWorkNote'],integration:'Alternative ITSM connector for case ticketing and change lookups',usedBy:'Case Management'},
  {key:'github',grp:'third',on:false,n:'GitHub Audit and Dependabot',d:'code security',ic:'🐙',kind:'Data source (DevSecOps)',purpose:'Repository audit events, code scanning and dependency alerts',api:'https://api.github.com/orgs/{org}/audit-log',auth:'GitHub App or fine-grained PAT in Key Vault',actions:['listAuditLog','listDependabotAlerts','listCodeScanningAlerts'],integration:'DevSecOps alerts become IT events and enrich software-supply-chain cases',usedBy:'Threat Hunting, Case Management'},
@@ -2847,23 +2847,26 @@ function parseJiraSummary(su){const m=/(CASE-[A-Za-z0-9-]+)/.exec(su||'');const 
    Requires an Entra session, same as every other live Jira call. */
 function toggleJiraPoll(){
   const btn=$('#jiraPollBtn');
-  if(jiraPollTimer){clearInterval(jiraPollTimer);jiraPollTimer=null;if(btn){btn.textContent='🔁 Auto-sync: OFF';btn.classList.remove('cyan');}toast('Jira auto-sync stopped');return;}
+  if(jiraPollTimer){clearInterval(jiraPollTimer);jiraPollTimer=null;if(btn){btn.textContent='Jira Sync: Off';btn.classList.remove('cyan');}toast('Jira auto-sync stopped');return;}
   if(!(AUTH&&AUTH.mode==='sso'&&AUTH.user)){toastApiAuth('Jira auto-sync');return;}
-  if(btn){btn.textContent='🔁 Auto-sync: ON · 45s';btn.classList.add('cyan');}
-  const run=()=>refreshJiraTickets();
-  run();jiraPollTimer=setInterval(run,45000);
-  toast('Jira auto-sync polling every 45s');
+  if(btn){btn.textContent='Jira Sync: On';btn.classList.add('cyan');}
+  /* One confirmation toast for turning it on (via the initial non-silent sync below).
+     Every subsequent 45s tick runs silently -- errors still surface, but the routine
+     "N tickets synced" success toast no longer pops up over and over while it's on. */
+  refreshJiraTickets(false);
+  jiraPollTimer=setInterval(function(){refreshJiraTickets(true);},45000);
 }
-function refreshJiraTickets(){fetch('/api/jira-list-issues')
+function refreshJiraTickets(silent){fetch('/api/jira-list-issues')
   .then(r=>readApiJson(r,'Jira'))
   .then(data=>{
-    if(!data||!Array.isArray(data.issues)){toast('Jira sync failed'+(data&&data.error?': '+data.error:''),true);return;}
+    if(!data||!Array.isArray(data.issues)){toast('Jira sync failed'+(data&&data.error?': '+data.error:''),true);return;} // failures always shown, silent or not
     jiraTickets=data.issues.map(t=>{const p=parseJiraSummary(t.summary);return Object.assign({},t,{caseId:p.caseId,device:p.device});});
     let linked=0;
     jiraTickets.forEach(t=>{if(t.caseId&&caseState[t.caseId]){applyJiraPull(caseState[t.caseId],t,t.key);linked++;}});
-    renderCases();toast(jiraTickets.length+' Jira tickets synced'+(linked?' · '+linked+' linked to cases':''));
+    renderCases();
+    if(!silent)toast(jiraTickets.length+' Jira tickets synced'+(linked?' · '+linked+' linked to cases':''));
   })
-  .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);});}
+  .catch(e=>{if(e&&e.code==='AUTH')return;toastApiUnavailable('Jira',e);}); /* connectivity errors always shown */}
 function incidentPrompt(msg,def,options){return new Promise(res=>{
   let box=$('#incidentModal');
   if(!box){box=document.createElement('div');box.id='incidentModal';
@@ -3194,7 +3197,7 @@ function doLogout(ev){
   }
   if(AUTH.mode==='sso'&&authCfg.logoutRedirectUrl){try{location.href=ssoAuthority()+'/oauth2/v2.0/logout?post_logout_redirect_uri='+encodeURIComponent(authCfg.logoutRedirectUrl);return;}catch(e){}}
   AUTH.user=null;$('#uMenu').classList.remove('on');$('#userChip').style.display='none';
-  if(jiraPollTimer){clearInterval(jiraPollTimer);jiraPollTimer=null;const b=$('#jiraPollBtn');if(b){b.textContent='🔁 Auto-sync: OFF';b.classList.remove('cyan');}}
+  if(jiraPollTimer){clearInterval(jiraPollTimer);jiraPollTimer=null;const b=$('#jiraPollBtn');if(b){b.textContent='Jira Sync: Off';b.classList.remove('cyan');}}
   $('#loginPass').value='';populateLoginUsers();applyAccessMode();$('#loginWrap').classList.remove('hidden');
 }
 function toggleUserMenu(ev){ev.stopPropagation();$('#uMenu').classList.toggle('on');}
