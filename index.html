@@ -438,7 +438,7 @@
       <div class="grid g4" id="kpis"></div>
       <div class="grid g-21" style="margin-top:16px">
         <div class="panel">
-          <div class="ph"><h3>Alert Volume — Fused Event Stream</h3><span class="lchip L2" title="Layer 2 — KQL context fusion & ContextualAlertScore">L2</span><span class="tag">by disposition</span><button class="btn sm cyan" id="volModeWin" onclick="volSetMode('window')" style="height:22px;padding:0 9px;font-size:10px;border-radius:7px" title="12 equal buckets across the loaded time window">Window</button><button class="btn sm" id="volModeDay" onclick="volSetMode('day')" style="height:22px;padding:0 9px;font-size:10px;border-radius:7px" title="One bar group per calendar day, dated">Daily</button></div>
+          <div class="ph"><h3>Alert Volume — Fused Event Stream</h3><span class="lchip L2" title="Layer 2 — KQL context fusion & ContextualAlertScore">L2</span><span class="tag">by disposition</span><button class="btn sm cyan" id="volModeComb" onclick="volSetMode('combined')" style="height:22px;padding:0 9px;font-size:10px;border-radius:7px" title="Last 24h hourly + older history daily, one continuous axis">Combined</button><button class="btn sm" id="volModeWin" onclick="volSetMode('window')" style="height:22px;padding:0 9px;font-size:10px;border-radius:7px" title="12 equal buckets across the loaded time window">Window</button><button class="btn sm" id="volModeDay" onclick="volSetMode('day')" style="height:22px;padding:0 9px;font-size:10px;border-radius:7px" title="One bar group per calendar day, dated">Daily</button></div>
           <div class="pb"><div id="volChart"></div>
             <div class="legend"><span><i style="background:var(--esc)"></i>Escalate</span><span><i style="background:var(--inv)"></i>Investigate</span><span><i style="background:var(--mon)"></i>Monitor</span><span><i style="background:var(--sup)"></i>Suppress</span></div></div>
         </div>
@@ -1548,37 +1548,67 @@ function renderOnboard(){
       </div>
     </div></div>`;
 }
-let volMode='window';
+let volMode='combined';
 function volSetMode(m){
   volMode=m;
-  const w=$('#volModeWin'),d=$('#volModeDay');
+  const w=$('#volModeWin'),d=$('#volModeDay'),c=$('#volModeComb');
   if(w)w.classList.toggle('cyan',m==='window');
   if(d)d.classList.toggle('cyan',m==='day');
+  if(c)c.classList.toggle('cyan',m==='combined');
   renderVol();
 }
 function renderVol(){
   if(!EVENTS.length){$('#volChart').innerHTML=emptyBox('\u25a4','No events yet \u2014 load watchlists and events under Data Sources to populate the stream.',CTA_LOAD);return;}
-  /* Grouped bar chart, two X-axis modes:
-     - 'window': N equal buckets across the loaded time window (fine-grained view).
-     - 'day':    one bucket per UTC calendar day, X labels are the dates. This is the
-                 view that stays readable when events cluster at a single ingest
-                 timestamp (a one-shot CAFI_Events_CL push lands everything in the
-                 same minute, which collapses the window view into one group). */
-  const DAY=86400000;
+  /* Grouped bar chart, three X-axis modes:
+     - 'window':   N equal buckets across the loaded time window (fine-grained view).
+     - 'day':      one bucket per UTC calendar day, X labels are the dates.
+     - 'combined': the recommended default. Recent activity (last 24h) shown hourly;
+                   everything older shown as one bucket per UTC day, both on one
+                   continuous axis with a divider between "history" and "last 24h".
+                   This is what stays useful when events cluster at a single ingest
+                   timestamp (a one-shot CAFI_Events_CL push lands everything in the
+                   same minute) AND when real historical spread exists \u2014 recent
+                   detail and long-range history in the same view instead of forcing
+                   a choice between them. */
+  const DAY=86400000,HOUR=3600000,RECENT_HOURS=24,MAX_HIST_DAYS=30;
   const _tv=EVENTS.map(e=>e.t.getTime());
   const t0raw=Math.min.apply(null,_tv),t1raw=Math.max.apply(null,_tv);
-  let buckets,bucketOf,tickLabel,xTitle,tickEvery;
+  let buckets,bucketOf,tickLabel,xTitle,tickEvery,divider=null,zoneLabels=null;
   if(volMode==='day'){
     const dEnd=Math.floor(t1raw/DAY);
     let dStart=Math.floor(t0raw/DAY);
     let clamped=false;
-    if(dEnd-dStart+1>31){dStart=dEnd-30;clamped=true;} // cap at the most recent 31 days
+    if(dEnd-dStart+1>31){dStart=dEnd-30;clamped=true;}
     buckets=dEnd-dStart+1;
-    bucketOf=ms=>Math.floor(ms/DAY)-dStart; // <0 = older than the shown range, excluded
+    bucketOf=ms=>Math.floor(ms/DAY)-dStart;
     const fmtDate=di=>{const d=new Date((dStart+di)*DAY);return (d.getUTCMonth()+1)+'/'+d.getUTCDate();};
     tickLabel=fmtDate;
     tickEvery=Math.max(1,Math.ceil(buckets/8));
     xTitle='Date (UTC) \u00b7 one bar group per day'+(clamped?' \u00b7 showing most recent 31 days':'');
+  }else if(volMode==='combined'){
+    const t1FloorHour=Math.floor(t1raw/HOUR)*HOUR;
+    const recentStart=t1FloorHour-(RECENT_HOURS-1)*HOUR;
+    const rawHistDays=Math.max(0,Math.ceil((recentStart-t0raw)/DAY));
+    const histClamped=rawHistDays>MAX_HIST_DAYS;
+    const dailyCount=Math.min(rawHistDays,MAX_HIST_DAYS);
+    const dStart=Math.floor(recentStart/DAY)-dailyCount;
+    buckets=dailyCount+RECENT_HOURS;
+    bucketOf=ms=>{
+      if(ms>=recentStart){const h=Math.max(0,Math.min(RECENT_HOURS-1,Math.floor((ms-recentStart)/HOUR)));return dailyCount+h;}
+      const di=Math.floor(ms/DAY)-dStart;
+      if(di<0)return -1; // older than the shown history window, excluded (like Daily mode's clamp)
+      return Math.min(dailyCount-1,di);
+    };
+    tickLabel=i=>{
+      if(i<dailyCount){const d=new Date((dStart+i)*DAY);return (d.getUTCMonth()+1)+'/'+d.getUTCDate();}
+      const d=new Date(recentStart+(i-dailyCount)*HOUR);return String(d.getUTCHours()).padStart(2,'0')+':00';
+    };
+    tickEvery=null; // combined mode draws its own two-zone ticks below
+    divider=dailyCount>0?dailyCount:null;
+    zoneLabels={hasHistory:dailyCount>0,dailyCount,clamped:histClamped};
+    xTitle=dailyCount>0
+      ?('Time (UTC) \u00b7 '+dailyCount+' day'+(dailyCount>1?'s':'')+' history (daily) + last 24h (hourly)'+(histClamped?' \u00b7 history capped at 30 days':''))
+      :'Time (UTC) \u00b7 last 24h, hourly (no earlier events loaded)';
   }else{
     buckets=12;
     const span=Math.max(1,t1raw-t0raw);
@@ -1592,19 +1622,32 @@ function renderVol(){
   EVENTS.forEach(e=>{const i=bucketOf(e.t.getTime());if(i>=0&&i<buckets&&arr[i][e.Disposition]!=null)arr[i][e.Disposition]++;});
   const DISPS=['Escalate','Investigate','Monitor','Suppress'];
   const col={Escalate:'var(--esc)',Investigate:'var(--inv)',Monitor:'var(--mon)',Suppress:'var(--sup)'};
-  const max=Math.max(1,...arr.flatMap(b=>DISPS.map(k=>b[k]))); // grouped scale: tallest single stream
+  const max=Math.max(1,...arr.flatMap(b=>DISPS.map(k=>b[k])));
   const W=720,H=240,pL=44,pR=14,pT=16,pB=40;
   const plotW=W-pL-pR,plotH=H-pT-pB,gw=plotW/buckets,bw=Math.max(2,(gw-Math.min(8,gw*0.25))/DISPS.length);
   const Y=v=>pT+plotH-(v/max)*plotH;
   let bars='';
   arr.forEach((b,i)=>{const gx=pL+i*gw+Math.min(4,gw*0.125);
-    DISPS.forEach((k,j)=>{const h=(b[k]/max)*plotH;if(h>0)bars+=`<rect x="${gx+j*bw}" y="${Y(b[k])}" width="${Math.max(1,bw-1)}" height="${h}" rx="1.5" fill="${col[k]}" opacity=".92"><title>${(volMode==='day'?tickLabel(i)+' \u00b7 ':'')}${k}: ${b[k]}</title></rect>`;});});
+    DISPS.forEach((k,j)=>{const h=(b[k]/max)*plotH;if(h>0)bars+=`<rect x="${gx+j*bw}" y="${Y(b[k])}" width="${Math.max(1,bw-1)}" height="${h}" rx="1.5" fill="${col[k]}" opacity=".92"><title>${tickLabel(i)} \u00b7 ${k}: ${b[k]}</title></rect>`;});});
   let grid='';const ySteps=4;
   for(let g=0;g<=ySteps;g++){const v=Math.round(max-(max/ySteps)*g),y=pT+g*(plotH/ySteps);
     grid+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="var(--line)"/><text x="${pL-6}" y="${y+3}" text-anchor="end" fill="var(--ink-faint)" font-size="9" font-family="IBM Plex Mono">${v}</text>`;}
   grid+=`<text x="12" y="${pT+plotH/2}" fill="var(--ink-faint)" font-size="9.5" font-weight="600" transform="rotate(-90 12 ${pT+plotH/2})" text-anchor="middle">Event count</text>`;
   let xl='';
-  for(let i=0;i<buckets;i+=tickEvery){const bx=pL+i*gw+gw/2;xl+=`<line x1="${bx}" y1="${pT+plotH}" x2="${bx}" y2="${pT+plotH+4}" stroke="var(--line2)"/><text x="${bx}" y="${H-pB+16}" text-anchor="middle" fill="var(--ink-faint)" font-size="8.5" font-family="IBM Plex Mono">${tickLabel(i)}</text>`;}
+  if(volMode==='combined'){
+    const dc=zoneLabels.dailyCount;
+    if(dc>0){
+      const everyD=Math.max(1,Math.ceil(dc/4));
+      for(let i=0;i<dc;i+=everyD){const bx=pL+i*gw+gw/2;xl+=`<line x1="${bx}" y1="${pT+plotH}" x2="${bx}" y2="${pT+plotH+4}" stroke="var(--line2)"/><text x="${bx}" y="${H-pB+16}" text-anchor="middle" fill="var(--ink-faint)" font-size="8.5" font-family="IBM Plex Mono">${tickLabel(i)}</text>`;}
+      const divX=pL+dc*gw;
+      xl+=`<line x1="${divX}" y1="${pT}" x2="${divX}" y2="${pT+plotH}" stroke="var(--brand)" stroke-dasharray="3 3" stroke-width="1"/>`;
+      xl+=`<text x="${pL+dc*gw/2}" y="${pT+11}" text-anchor="middle" fill="var(--ink-faint)" font-size="8" font-family="IBM Plex Mono" letter-spacing=".08em">HISTORY</text>`;
+      xl+=`<text x="${divX+(buckets-dc)*gw/2}" y="${pT+11}" text-anchor="middle" fill="var(--brand)" font-size="8" font-family="IBM Plex Mono" letter-spacing=".08em">LAST 24H</text>`;
+    }
+    for(let i=dc;i<buckets;i+=Math.max(1,Math.ceil((buckets-dc)/6))){const bx=pL+i*gw+gw/2;xl+=`<line x1="${bx}" y1="${pT+plotH}" x2="${bx}" y2="${pT+plotH+4}" stroke="var(--line2)"/><text x="${bx}" y="${H-pB+16}" text-anchor="middle" fill="var(--ink-faint)" font-size="8.5" font-family="IBM Plex Mono">${tickLabel(i)}</text>`;}
+  }else{
+    for(let i=0;i<buckets;i+=tickEvery){const bx=pL+i*gw+gw/2;xl+=`<line x1="${bx}" y1="${pT+plotH}" x2="${bx}" y2="${pT+plotH+4}" stroke="var(--line2)"/><text x="${bx}" y="${H-pB+16}" text-anchor="middle" fill="var(--ink-faint)" font-size="8.5" font-family="IBM Plex Mono">${tickLabel(i)}</text>`;}
+  }
   xl+=`<text x="${pL+plotW/2}" y="${H-4}" text-anchor="middle" fill="var(--ink-faint)" font-size="9.5" font-weight="600">${xTitle}</text>`;
   $('#volChart').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%">${grid}${xl}${bars}</svg>`;
 }
